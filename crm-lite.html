@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Lite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0; /* Lighter gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2.5rem 1.5rem; /* Increased padding */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 3rem; /* More generous padding */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Stronger shadow */
+            width: 100%;
+            max-width: 1000px; /* Increased max-width for wider table */
+        }
+        input[type="text"], input[type="email"], input[type="tel"], textarea, select, input[type="date"] {
+            @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200; /* Enhanced focus, slightly larger padding, more rounded */
+        }
+        button {
+            /* Increased padding and explicit font size for better visual size */
+            @apply py-3 px-6 rounded-lg font-semibold text-base transition-all duration-200 shadow-sm; /* Larger padding, more rounded, shadow */
+        }
+        .btn-primary {
+            background-color: #1f2937; /* bg-gray-800 */
+            color: #ffffff; /* text-white */
+            @apply hover:bg-gray-700 focus:ring-gray-400 active:bg-gray-900;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400 active:bg-gray-400;
+        }
+        .btn-danger {
+            @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-400 active:bg-red-800; /* More vibrant red */
+        }
+        /* Table-like layout styles */
+        .contacts-table-header, .contact-row {
+            /* Adjusted column widths for new Tasks column */
+            display: grid;
+            grid-template-columns: 1.5fr 1.5fr 1fr 1fr 0.8fr 1.5fr 0.5fr 0.5fr; /* Added one more column for tasks */
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            align-items: center;
+        }
+        .contacts-table-header {
+            background-color: #4b5563; /* Darker gray for header */
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 0.5rem 0.5rem 0 0;
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+        .contact-row {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .contact-row:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+        .contact-row > div {
+            padding: 0.25rem 0; /* Padding within cells */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Apply hover effect to all potentially truncated cells */
+        .contact-row > div:not(.actions-cell):hover {
+            overflow: visible;
+            white-space: normal;
+            max-height: none; /* Allow content to expand */
+            position: relative;
+            background-color: #fff; /* Ensure background for hover visibility */
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0; /* Start hidden for animation */
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.is-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 90%;
+            max-width: 550px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal.is-visible .modal-content {
+            transform: translateY(0);
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .spinner {
+            border: 5px solid rgba(59, 130, 246, 0.2);
+            border-left-color: #3b82f6;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Collapsible section header styling */
+        .collapsible-header {
+            background-color: #f3f4f6;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #374151;
+            transition: background-color 0.2s;
+            margin-bottom: 1rem;
+        }
+        .collapsible-header:hover {
+            background-color: #e5e7eb;
+        }
+        .collapsible-content {
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            background-color: #ffffff;
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+        .collapsible-header svg {
+            transition: transform 0.2s;
+        }
+        .collapsible-header.expanded svg {
+            transform: rotate(180deg);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        /* Defined colors for each status */
+        .status-lead { background-color: #a7c9f2; color: #1a5276; }
+        .status-prospect { background-color: #fef3c7; color: #92400e; }
+        .status-customer { background-color: #d1fae5; color: #065f46; }
+        .status-ongoing { background-color: #bfdbfe; color: #1d4ed8; }
+        .status-followup { background-color: #ffedd5; color: #c2410c; }
+        .status-lost { background-color: #fecaca; color: #b91c1c; }
+        .status-other { background-color: #e5e7eb; color: #4b5563; }
+
+
+        /* Icon button styling */
+        .icon-button {
+            @apply flex items-center justify-center p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors duration-200;
+            width: 32px;
+            height: 32px;
+        }
+        .icon-button svg {
+            width: 16px;
+            height: 16px;
+        }
+        .icon-button.edit-btn {
+            @apply text-blue-600 hover:bg-blue-100;
+        }
+        .icon-button.delete-btn {
+            @apply text-red-600 hover:bg-red-100;
+        }
+
+        /* Search input container styling */
+        .search-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+        .search-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+        .search-input-wrapper input {
+            padding-left: 2.75rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+        .search-input-wrapper input:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .search-input-wrapper svg {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            width: 20px;
+            height: 20px;
+        }
+        .search-button {
+            background-color: #1f2937;
+            color: #ffffff;
+            @apply py-3 px-5 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:bg-gray-700 focus:ring-gray-400 active:bg-gray-900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            height: 48px;
+        }
+        .search-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Filter controls container */
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .filter-controls label {
+            font-weight: 500;
+            color: #374151;
+            margin-right: 0.5rem;
+        }
+        .filter-controls select {
+            flex-grow: 1;
+            max-width: 200px;
+        }
+
+        /* Export/Import Controls */
+        .data-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+        .data-controls .btn-export {
+            @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-400 active:bg-blue-800;
+        }
+        .data-controls .btn-import {
+            @apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-400 active:bg-purple-800;
+        }
+        .data-controls input[type="file"] {
+            display: none;
+        }
+        .data-controls .file-input-label {
+            @apply px-6 py-3 rounded-lg font-semibold text-base transition-all duration-200 shadow-sm cursor-pointer;
+            @apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-400 active:bg-purple-800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* Task List Styling */
+        .task-item {
+            @apply flex items-center justify-between p-2 bg-gray-50 border border-gray-200 rounded-md mb-2;
+        }
+        .task-item.completed .task-description {
+            @apply line-through text-gray-500;
+        }
+        .task-item .task-info {
+            @apply flex items-center flex-grow;
+        }
+        .task-item .task-info input[type="checkbox"] {
+            @apply mr-3;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .task-item .task-info .task-description {
+            @apply text-gray-800 font-medium;
+            flex-grow: 1;
+        }
+        .task-item .task-info .task-due-date {
+            @apply text-gray-600 text-sm ml-4;
+            white-space: nowrap;
+        }
+        .task-item .task-actions {
+            @apply flex items-center ml-4;
+        }
+        .task-item .task-actions .delete-task-btn {
+            @apply p-1 rounded-full text-red-500 hover:bg-red-100;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .task-item .task-actions .delete-task-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* New Task Summary Cell Styling */
+        .task-summary-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        .task-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-left: 0.5rem;
+        }
+
+        /* Task Status Colors */
+        .task-overdue { background-color: #ef4444; }
+        .task-due-soon { background-color: #f59e0b; }
+        .task-all-completed { background-color: #10b981; }
+        .task-has-pending { background-color: #3b82f6; }
+
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .contacts-table-header, .contact-row {
+                grid-template-columns: 1fr;
+                padding: 0.75rem;
+            }
+            .contacts-table-header {
+                border-radius: 0.5rem;
+            }
+            .contact-row > div {
+                white-space: normal;
+                max-height: none;
+                overflow: visible;
+            }
+            .contact-row > div:not(.actions-cell):hover {
+                box-shadow: none;
+                padding: 0.25rem 0;
+            }
+            .contact-row .actions-cell {
+                justify-content: flex-start;
+                margin-top: 0.5rem;
+            }
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-input-wrapper {
+                margin-bottom: 0.5rem;
+            }
+            .search-button {
+                width: 100%;
+                min-width: unset;
+            }
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-controls select {
+                max-width: 100%;
+            }
+            .data-controls {
+                flex-direction: column;
+            }
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">CRM Lite</h2>
+        <p class="text-gray-600 mb-8 text-center">Manage your business contacts efficiently and beautifully.</p>
+
+        <div class="mb-6">
+            <!-- Updated Your Contacts Header -->
+            <h3 class="text-xl font-semibold text-center bg-gray-800 text-white py-3 px-6 rounded-lg mb-4">Your Contacts</h3>
+
+            <!-- Search/Filter Input with Button -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <input type="text" id="searchContacts" placeholder="Search contacts by name, email, or company..." class="w-full">
+                </div>
+                <button id="searchButton" class="search-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Status Filter Dropdown -->
+            <div class="filter-controls">
+                <label for="filterStatus">Filter by Status:</label>
+                <select id="filterStatus" class="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                    <option value="All">All Statuses</option>
+                    <option value="Lead">Lead</option>
+                    <option value="Prospect">Prospect</option>
+                    <option value="Customer">Customer</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Lost">Lost</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <!-- Export/Import Buttons -->
+            <div class="data-controls">
+                <button id="exportCsvBtn" class="btn-export">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 inline-block mr-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9.75v6.75m0 0-3-3m3 3 3-3m-8.25 6h12a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 16.5 4.5h-1.5a2.25 2.25 0 0 1-2.25-2.25H9.75A2.25 2.25 0 0 1 7.5 4.5H6a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 6 21h12" />
+                    </svg>
+                    Export to CSV
+                </button>
+                <input type="file" id="importCsvInput" accept=".csv">
+                <label for="importCsvInput" class="file-input-label btn-import">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 inline-block mr-2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 1.5A2.25 2.25 0 0 0 4.5 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V3.75A2.25 2.25 0 0 0 17.25 1.5H6.75Z" />
+                    </svg>
+                    Import from CSV
+                </label>
+            </div>
+
+
+            <!-- Contacts Table Header -->
+            <div class="contacts-table-header">
+                <div>Name</div>
+                <div>Email</div>
+                <div>Phone</div>
+                <div>Company</div>
+                <div>Status</div>
+                <div>Notes</div>
+                <div>Tasks</div> <!-- New Header -->
+                <div>Actions</div>
+            </div>
+
+            <div id="contactsList" class="space-y-2">
+                <!-- Contacts will be loaded here as rows -->
+                <p id="noContactsMessage" class="text-gray-500 text-center hidden py-8">No contacts added yet. Start by adding a new one below!</p>
+            </div>
+        </div>
+
+        <!-- Add New Contact Collapsible Section -->
+        <div class="collapsible-section">
+            <div class="collapsible-header" id="addContactHeader">
+                <span>Add New Contact</span>
+                <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+            <div id="addContactContent" class="collapsible-content bg-gray-50 rounded-lg shadow-inner">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" id="contactName" placeholder="Name">
+                    <input type="email" id="contactEmail" placeholder="Email">
+                    <input type="tel" id="contactPhone" placeholder="Phone">
+                    <input type="text" id="contactCompany" placeholder="Company">
+                    <select id="contactStatus" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        <option value="Lead">Lead</option>
+                        <option value="Prospect">Prospect</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Lost">Lost</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <textarea id="contactNotes" rows="3" placeholder="Notes..." class="mb-4"></textarea>
+                <div class="flex justify-center">
+                    <button id="addContactBtn" class="btn-primary">Add Contact</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Edit Contact Modal -->
+        <div id="editContactModal" class="modal hidden">
+            <div class="modal-content">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Edit Contact</h3>
+                <input type="hidden" id="editContactId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" id="editContactName" placeholder="Name">
+                    <input type="email" id="editContactEmail" placeholder="Email">
+                    <input type="tel" id="editContactPhone" placeholder="Phone">
+                    <input type="text" id="editContactCompany" placeholder="Company">
+                    <select id="editContactStatus" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        <option value="Lead">Lead</option>
+                        <option value="Prospect">Prospect</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Lost">Lost</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <textarea id="editContactNotes" rows="3" placeholder="Notes..." class="mb-4"></textarea>
+
+                <!-- Tasks Collapsible Section -->
+                <div class="collapsible-section mt-6">
+                    <div class="collapsible-header" id="editTasksHeader">
+                        <span>Tasks</span>
+                        <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                    <div id="editTasksContent" class="collapsible-content bg-gray-50 rounded-lg shadow-inner">
+                        <div class="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm mb-4">
+                            <p class="font-bold mb-1">Task Status in Main List:</p>
+                            <ul class="list-disc list-inside space-y-0.5">
+                                <li><span class="font-semibold text-red-600">Red:</span> Overdue tasks.</li>
+                                <li><span class="font-semibold text-orange-500">Orange:</span> Tasks due in next 7 days.</li>
+                                <li><span class="font-semibold text-green-600">Green:</span> All tasks completed.</li>
+                                <li><span class="font-semibold text-blue-600">Blue:</span> Pending tasks (not due soon/overdue).</li>
+                                <li><span class="font-semibold text-gray-500">N/A:</span> No tasks.</li>
+                                <li>To mark a task as complete, **click its checkbox**.</li>
+                            </ul>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                            <input type="text" id="newTaskDescription" placeholder="Task description" class="flex-grow">
+                            <input type="date" id="newTaskDueDate" class="w-auto">
+                            <button id="addTaskBtn" class="btn-primary flex-shrink-0">Add Task</button>
+                        </div>
+                        <div id="editContactTasksList" class="space-y-2">
+                            <!-- Tasks will be rendered here -->
+                            <p id="noTasksMessage" class="text-gray-500 text-center py-4 hidden">No tasks for this contact yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button id="saveEditBtn" class="btn-primary inline-block">Save Changes</button>
+                    <button id="cancelEditBtn" class="btn-secondary inline-block">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteConfirmModal" class="modal hidden">
+            <div class="modal-content">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Confirm Deletion</h3>
+                <p class="text-gray-700 mb-6">Are you sure you want to delete this contact?</p>
+                <div class="flex justify-end space-x-2">
+                    <button id="confirmDeleteBtn" class="btn-danger inline-block">Delete</button>
+                    <button id="cancelDeleteBtn" class="btn-secondary inline-block">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+        </div>
+
+        <p class="text-gray-500 text-sm mt-8 text-center">
+            <span class="font-bold text-red-600">Disclaimer:</span> This is a simplified CRM Lite for demonstration and personal use. It does not offer advanced features, robust security, or enterprise-level capabilities of full CRM systems.
+        </p>
+        <p class="text-gray-500 text-xs mt-2 text-center" id="userIdDisplay"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization (MANDATORY GLOBALS)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // Fix: Correctly reference __initial_auth_token
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+
+        let app, db, auth, userId;
+        let contactsCollectionRef; // Reference to the user-specific contacts collection
+        let allContacts = []; // Store all contacts for filtering
+        let currentEditingContact = null; // Store the contact being edited for task management
+
+        const contactNameInput = document.getElementById('contactName');
+        const contactEmailInput = document.getElementById('contactEmail');
+        const contactPhoneInput = document.getElementById('contactPhone');
+        const contactCompanyInput = document.getElementById('contactCompany');
+        const contactNotesInput = document.getElementById('contactNotes');
+        const contactStatusInput = document.getElementById('contactStatus'); // New status input
+        const addContactBtn = document.getElementById('addContactBtn');
+        const contactsListDiv = document.getElementById('contactsList');
+        const noContactsMessage = document.getElementById('noContactsMessage');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const searchContactsInput = document.getElementById('searchContacts'); // New search input
+        const searchButton = document.getElementById('searchButton'); // New search button
+        const filterStatusDropdown = document.getElementById('filterStatus'); // New filter status dropdown
+
+        // Export/Import Elements
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const importCsvInput = document.getElementById('importCsvInput');
+
+        // Edit Modal Elements
+        const editContactModal = document.getElementById('editContactModal');
+        const editContactIdInput = document.getElementById('editContactId');
+        const editContactNameInput = document.getElementById('editContactName');
+        const editContactEmailInput = document.getElementById('editContactEmail');
+        const editContactPhoneInput = document.getElementById('editContactPhone');
+        const editContactCompanyInput = document.getElementById('editContactCompany');
+        const editContactNotesInput = document.getElementById('editContactNotes');
+        const editContactStatusInput = document.getElementById('editContactStatus'); // New edit status input
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        // Task Management Elements
+        const editTasksHeader = document.getElementById('editTasksHeader');
+        const editTasksContent = document.getElementById('editTasksContent');
+        const newTaskDescriptionInput = document.getElementById('newTaskDescription');
+        const newTaskDueDateInput = document.getElementById('newTaskDueDate');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const editContactTasksList = document.getElementById('editContactTasksList');
+        const noTasksMessage = document.getElementById('noTasksMessage');
+
+        // Delete Modal Elements
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        let contactToDeleteId = null; // To store the ID of the contact to be deleted
+
+        // Collapsible elements
+        const addContactHeader = document.getElementById('addContactHeader');
+        const addContactContent = document.getElementById('addContactContent');
+
+        // --- Firebase Initialization and Authentication ---
+        const initializeFirebase = async () => {
+            try {
+                showLoading();
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = `Your User ID: ${userId}`; // More descriptive text
+                        // Use private collection path for user-specific data
+                        contactsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/contacts`);
+                        console.log("Firestore initialized. User ID:", userId);
+                        loadContacts();
+                    } else {
+                        // Sign in anonymously if no user is authenticated
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                    if (!user) hideLoading(); // Only hide if no user, otherwise loadContacts will hide
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or authenticating:", error);
+                displayMessage("Failed to initialize the app. Please try again later.", "error");
+                hideLoading();
+            }
+        };
+
+        // --- Custom Message Box (instead of alert) ---
+        const displayMessage = (message, type = "info") => {
+            const messageBox = document.createElement('div');
+            messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 transition-all duration-300 transform translate-y-full opacity-0`;
+            if (type === "error") {
+                messageBox.classList.add('bg-red-600');
+            } else if (type === "success") {
+                messageBox.classList.add('bg-green-600');
+            } else {
+                messageBox.classList.add('bg-blue-600');
+            }
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+
+            // Animate in
+            setTimeout(() => {
+                messageBox.classList.remove('translate-y-full', 'opacity-0');
+            }, 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                messageBox.classList.add('translate-y-full', 'opacity-0');
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 3000);
+        };
+
+
+        // --- UI Functions ---
+        const showLoading = () => {
+            loadingOverlay.classList.remove('hidden');
+        };
+
+        const hideLoading = () => {
+            loadingOverlay.classList.add('hidden');
+        };
+
+        const showModal = (modalElement) => {
+            modalElement.classList.remove('hidden');
+            modalElement.classList.add('is-visible'); // For animation
+        };
+
+        const hideModal = (modalElement) => {
+            modalElement.classList.remove('is-visible'); // For animation
+            modalElement.addEventListener('transitionend', function handler() {
+                modalElement.classList.add('hidden');
+                modalElement.removeEventListener('transitionend', handler);
+            }, { once: true });
+        };
+
+        const clearAddContactForm = () => {
+            contactNameInput.value = '';
+            contactEmailInput.value = '';
+            contactPhoneInput.value = '';
+            contactCompanyInput.value = '';
+            contactNotesInput.value = '';
+            contactStatusInput.value = 'Lead'; // Reset to default status
+        };
+
+        const getStatusBadgeClass = (status) => {
+            switch (status) {
+                case 'Lead': return 'status-lead';
+                case 'Prospect': return 'status-prospect';
+                case 'Customer': return 'status-customer';
+                case 'Ongoing': return 'status-ongoing';
+                case 'Follow-up': return 'status-followup';
+                case 'Lost': return 'status-lost';
+                default: return 'status-other';
+            }
+        };
+
+        const renderContact = (contact) => {
+            const contactRow = document.createElement('div');
+            contactRow.className = 'contact-row';
+            contactRow.dataset.id = contact.id;
+            const statusClass = getStatusBadgeClass(contact.status);
+
+            const tasks = contact.tasks || [];
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(t => t.isCompleted).length;
+
+            let taskBadgeClass = '';
+            let taskSignalHtml = '';
+
+            if (totalTasks > 0) {
+                const now = Date.now();
+                const oneDay = 24 * 60 * 60 * 1000;
+                const sevenDays = 7 * oneDay;
+
+                const overdueTasks = tasks.filter(t => !t.isCompleted && t.dueDate && t.dueDate < now);
+                const dueSoonTasks = tasks.filter(t => !t.isCompleted && t.dueDate && t.dueDate >= now && t.dueDate <= (now + sevenDays));
+                const hasPendingTasks = tasks.some(t => !t.isCompleted);
+
+                if (overdueTasks.length > 0) {
+                    taskBadgeClass = 'task-overdue'; // Red
+                } else if (dueSoonTasks.length > 0) {
+                    taskBadgeClass = 'task-due-soon'; // Amber
+                } else if (totalTasks > 0 && completedTasks === totalTasks) {
+                    taskBadgeClass = 'task-all-completed'; // Green
+                } else if (hasPendingTasks) {
+                    taskBadgeClass = 'task-has-pending'; // Blue
+                }
+
+                taskSignalHtml = `
+                    <span class="task-count-badge ${taskBadgeClass}" title="${totalTasks} tasks, ${completedTasks} completed">
+                        ${totalTasks}
+                    </span>
+                `;
+            } else {
+                taskSignalHtml = '<span class="text-gray-400 text-sm">N/A</span>';
+            }
+
+
+            contactRow.innerHTML = `
+                <div class="text-gray-900 font-medium" title="${contact.name || ''}">${contact.name || '<span class="text-gray-400">N/A</span>'}</div>
+                <div class="text-gray-700 text-sm truncate" title="${contact.email || ''}">${contact.email || '<span class="text-gray-400">N/A</span>'}</div>
+                <div class="text-gray-700 text-sm" title="${contact.phone || ''}">${contact.phone || '<span class="text-gray-400">N/A</span>'}</div>
+                <div class="text-gray-700 text-sm" title="${contact.company || ''}">${contact.company || '<span class="text-gray-400">N/A</span>'}</div>
+                <div><span class="status-badge ${statusClass}">${contact.status || 'N/A'}</span></div>
+                <div class="text-gray-600 text-sm notes-cell" title="${contact.notes || ''}">${contact.notes || '<span class="text-gray-400">N/A</span>'}</div>
+                <div class="task-summary-cell">${taskSignalHtml}</div> <!-- New cell for tasks summary -->
+                <div class="flex space-x-2 actions-cell">
+                    <button class="edit-btn icon-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.862 4.487zM18.75 8.25l-1.5-1.5" />
+                        </svg>
+                    </button>
+                    <button class="delete-btn icon-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.924a2.25 2.25 0 01-2.244-2.077L5.09 6.25c-.21-.03-.42-.06-.63-.094m18.16-.094A2.25 2.25 0 0018.97 4.165H5.03A2.25 2.25 0 003 6.25v1.751m1.45 10.75l.75-3m0 0l.75-3m-.75 3h-.008v.008h.008v-.008zm0 0h.008v.008h-.008v-.008zm0 0h.008v.008h-.008v-.008z" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            contactRow.querySelector('.edit-btn').addEventListener('click', () => openEditModal(contact));
+            contactRow.querySelector('.delete-btn').addEventListener('click', () => openDeleteConfirmModal(contact.id));
+
+            return contactRow;
+        };
+
+        const updateContactsList = (contactsToDisplay) => {
+            contactsListDiv.innerHTML = ''; // Clear current list
+            if (contactsToDisplay.length === 0) {
+                noContactsMessage.classList.remove('hidden');
+            } else {
+                noContactsMessage.classList.add('hidden');
+                contactsToDisplay.forEach(contact => {
+                    contactsListDiv.appendChild(renderContact(contact));
+                });
+            }
+        };
+
+        // --- CRUD Operations ---
+        const addContact = async (contactData) => {
+            const { name, email, phone, company, notes, status } = contactData;
+
+            if (!name && !email && !phone && !company && !notes) {
+                displayMessage("Please fill in at least one field to add a contact.", "error");
+                return;
+            }
+
+            showLoading();
+            try {
+                await addDoc(contactsCollectionRef, {
+                    name: name || '',
+                    email: email || '',
+                    phone: phone || '',
+                    company: company || '',
+                    notes: notes || '',
+                    status: status || 'Lead', // Default to 'Lead' if not provided
+                    tasks: [], // Initialize tasks array for new contacts
+                    createdAt: Date.now() // Timestamp for ordering
+                });
+                displayMessage("Contact added successfully!", "success");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                displayMessage("Failed to add contact. Please try again.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        const loadContacts = () => {
+            showLoading();
+            // Use onSnapshot for real-time updates
+            const q = query(contactsCollectionRef, orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                allContacts = []; // Update the global allContacts array
+                snapshot.forEach((doc) => {
+                    allContacts.push({ id: doc.id, ...doc.data() });
+                });
+                filterContacts(); // Filter and display contacts after loading
+                hideLoading();
+            }, (error) => {
+                console.error("Error loading contacts: ", error);
+                displayMessage("Failed to load contacts. Please refresh the page.", "error");
+                hideLoading();
+            });
+        };
+
+        const openEditModal = (contact) => {
+            currentEditingContact = contact; // Set the current contact being edited
+            editContactIdInput.value = contact.id;
+            editContactNameInput.value = contact.name || '';
+            editContactEmailInput.value = contact.email || '';
+            editContactPhoneInput.value = contact.phone || '';
+            editContactCompanyInput.value = contact.company || '';
+            editContactNotesInput.value = contact.notes || '';
+            editContactStatusInput.value = contact.status || 'Lead'; // Set current status
+
+            // Render tasks for the current contact
+            renderTasks(contact.tasks || [], contact.id);
+
+            showModal(editContactModal);
+        };
+
+        const saveContactEdit = async () => {
+            const id = editContactIdInput.value;
+            const name = editContactNameInput.value.trim();
+            const email = editContactEmailInput.value.trim();
+            const phone = editContactPhoneInput.value.trim();
+            const company = editContactCompanyInput.value.trim();
+            const notes = editContactNotesInput.value.trim();
+            const status = editContactStatusInput.value; // Get updated status
+
+            if (!name && !email && !phone && !company && !notes && (!currentEditingContact.tasks || currentEditingContact.tasks.length === 0)) {
+                displayMessage("Please fill in at least one field for the contact or add a task.", "error");
+                return;
+            }
+
+            showLoading();
+            try {
+                const contactDocRef = doc(db, `artifacts/${appId}/users/${userId}/contacts`, id);
+                await updateDoc(contactDocRef, {
+                    name,
+                    email,
+                    phone,
+                    company,
+                    notes,
+                    status, // Update status
+                    tasks: currentEditingContact.tasks || [], // Save the updated tasks array
+                    updatedAt: Date.now() // Optional: add an updated timestamp
+                });
+                hideModal(editContactModal);
+                displayMessage("Contact updated successfully!", "success");
+            } catch (e) {
+                console.error("Error updating document: ", e);
+                displayMessage("Failed to update contact. Please try again.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        const openDeleteConfirmModal = (id) => {
+            contactToDeleteId = id;
+            showModal(deleteConfirmModal);
+        };
+
+        const deleteContact = async () => {
+            if (!contactToDeleteId) return;
+
+            showLoading();
+            try {
+                const contactDocRef = doc(db, `artifacts/${appId}/users/${userId}/contacts`, contactToDeleteId);
+                await deleteDoc(contactDocRef);
+                hideModal(deleteConfirmModal);
+                contactToDeleteId = null; // Clear the ID
+                displayMessage("Contact deleted successfully!", "success");
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+                displayMessage("Failed to delete contact. Please try again.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // --- Search/Filter Functionality ---
+        const filterContacts = () => {
+            const searchTerm = searchContactsInput.value.toLowerCase();
+            const selectedStatus = filterStatusDropdown.value;
+
+            const filteredContacts = allContacts.filter(contact => {
+                const matchesSearch = (contact.name && contact.name.toLowerCase().includes(searchTerm)) ||
+                                      (contact.email && contact.email.toLowerCase().includes(searchTerm)) ||
+                                      (contact.company && contact.company.toLowerCase().includes(searchTerm));
+
+                const matchesStatus = (selectedStatus === 'All' || contact.status === selectedStatus);
+
+                return matchesSearch && matchesStatus;
+            });
+            updateContactsList(filteredContacts);
+        };
+
+        // --- Export/Import Functions ---
+        const exportContactsToCsv = () => {
+            if (allContacts.length === 0) {
+                displayMessage("No contacts to export.", "info");
+                return;
+            }
+
+            showLoading();
+            try {
+                const headers = ["Name", "Email", "Phone", "Company", "Status", "Notes", "Tasks"]; // Added Tasks header
+                const rows = allContacts.map(contact => {
+                    // Stringify tasks array for CSV
+                    const tasksCsv = JSON.stringify(contact.tasks || []);
+                    return [
+                        `"${(contact.name || '').replace(/"/g, '""')}"`,
+                        `"${(contact.email || '').replace(/"/g, '""')}"`,
+                        `"${(contact.phone || '').replace(/"/g, '""')}"`,
+                        `"${(contact.company || '').replace(/"/g, '""')}"`,
+                        `"${(contact.status || '').replace(/"/g, '""')}"`,
+                        `"${(contact.notes || '').replace(/"/g, '""')}"`,
+                        `"${tasksCsv.replace(/"/g, '""')}"` // Double quotes for tasks string
+                    ].join(',');
+                });
+
+                const csvContent = [headers.join(','), ...rows].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', 'crm_contacts.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                displayMessage("Contacts exported successfully!", "success");
+            } catch (error) {
+                console.error("Error exporting contacts:", error);
+                displayMessage("Failed to export contacts.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        const importContactsFromCsv = (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            showLoading();
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+
+                    if (lines.length === 0) {
+                        displayMessage("CSV file is empty.", "error");
+                        hideLoading();
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '')); // Remove quotes from headers
+                    const expectedHeaders = ["Name", "Email", "Phone", "Company", "Status", "Notes", "Tasks"];
+
+                    // Basic header validation
+                    if (!expectedHeaders.every(header => headers.includes(header))) {
+                        displayMessage("Invalid CSV format. Expected headers: Name, Email, Phone, Company, Status, Notes, Tasks.", "error");
+                        hideLoading();
+                        return;
+                    }
+
+                    const contactsToImport = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = parseCsvLine(lines[i]); // Handle commas within quoted fields
+                        if (values.length !== headers.length) {
+                            console.warn(`Skipping malformed row ${i + 1}: ${lines[i]}`);
+                            continue; // Skip malformed rows
+                        }
+
+                        const contact = {};
+                        headers.forEach((header, index) => {
+                            let value = values[index];
+                            if (header.toLowerCase() === 'tasks') {
+                                try {
+                                    // Parse the tasks string back into an array
+                                    value = JSON.parse(value.replace(/""/g, '"')); // Replace "" with " before parsing
+                                    if (!Array.isArray(value)) value = []; // Ensure it's an array
+                                } catch (e) {
+                                    console.warn(`Could not parse tasks for row ${i + 1}:`, value, e);
+                                    value = [];
+                                }
+                            }
+                            contact[header.toLowerCase()] = value;
+                        });
+                        contactsToImport.push(contact);
+                    }
+
+                    if (contactsToImport.length === 0) {
+                        displayMessage("No valid contacts found in the CSV file.", "error");
+                        hideLoading();
+                        return;
+                    }
+
+                    let importedCount = 0;
+                    for (const contactData of contactsToImport) {
+                        // Simple import: just add new contacts. No duplicate check for simplicity.
+                        await addDoc(contactsCollectionRef, {
+                            name: contactData.name || '',
+                            email: contactData.email || '',
+                            phone: contactData.phone || '',
+                            company: contactData.company || '',
+                            notes: contactData.notes || '',
+                            status: contactData.status || 'Other', // Default status if not provided
+                            tasks: contactData.tasks || [], // Import tasks
+                            createdAt: Date.now()
+                        });
+                        importedCount++;
+                    }
+                    displayMessage(`Successfully imported ${importedCount} contacts!`, "success");
+                } catch (error) {
+                    console.error("Error importing contacts:", error);
+                    displayMessage("Failed to import contacts. Please check the CSV format.", "error");
+                } finally {
+                    hideLoading();
+                    event.target.value = ''; // Clear file input
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        // Helper function to parse a CSV line, handling quoted fields
+        const parseCsvLine = (line) => {
+            const result = [];
+            let inQuote = false;
+            let currentField = '';
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    if (inQuote && i + 1 < line.length && line[i + 1] === '"') {
+                        // Escaped quote: "" becomes "
+                        currentField += '"';
+                        i++;
+                    } else {
+                        inQuote = !inQuote;
+                    }
+                } else if (char === ',' && !inQuote) {
+                    result.push(currentField);
+                    currentField = '';
+                } else {
+                    currentField += char;
+                }
+            }
+            result.push(currentField); // Add the last field
+            return result.map(field => field.trim()); // Trim whitespace from each field
+        };
+
+        // --- Task Management Functions ---
+        const renderTasks = (tasks, contactId) => {
+            editContactTasksList.innerHTML = ''; // Clear existing tasks
+            if (!tasks || tasks.length === 0) {
+                noTasksMessage.classList.remove('hidden');
+            } else {
+                noTasksMessage.classList.add('hidden');
+                tasks.forEach((task, index) => {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = `task-item ${task.isCompleted ? 'completed' : ''}`;
+                    taskItem.innerHTML = `
+                        <div class="task-info">
+                            <input type="checkbox" ${task.isCompleted ? 'checked' : ''} data-task-index="${index}">
+                            <span class="task-description">${task.description}</span>
+                            ${task.dueDate ? `<span class="task-due-date">Due: ${new Date(task.dueDate).toLocaleDateString()}</span>` : ''}
+                        </div>
+                        <div class="task-actions">
+                            <button class="delete-task-btn" data-task-index="${index}">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    editContactTasksList.appendChild(taskItem);
+
+                    // Add event listeners for checkbox and delete button
+                    taskItem.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
+                        const taskIndex = parseInt(e.target.dataset.taskIndex);
+                        updateTaskStatus(contactId, taskIndex, e.target.checked);
+                    });
+                    taskItem.querySelector('.delete-task-btn').addEventListener('click', (e) => {
+                        const taskIndex = parseInt(e.currentTarget.dataset.taskIndex);
+                        deleteTaskFromContact(contactId, taskIndex);
+                    });
+                });
+            }
+        };
+
+        const addTaskToContact = async () => {
+            const description = newTaskDescriptionInput.value.trim();
+            const dueDate = newTaskDueDateInput.value;
+
+            if (!description) {
+                displayMessage("Task description cannot be empty.", "error");
+                return;
+            }
+
+            if (!currentEditingContact) {
+                displayMessage("No contact selected for adding tasks.", "error");
+                return;
+            }
+
+            showLoading();
+            try {
+                const newTask = {
+                    description: description,
+                    dueDate: dueDate ? new Date(dueDate).getTime() : null, // Store as timestamp
+                    isCompleted: false,
+                    createdAt: Date.now()
+                };
+
+                // Add task to the local currentEditingContact object
+                currentEditingContact.tasks = currentEditingContact.tasks || [];
+                currentEditingContact.tasks.push(newTask);
+
+                // Update Firestore (only the tasks array)
+                const contactDocRef = doc(db, `artifacts/${appId}/users/${userId}/contacts`, currentEditingContact.id);
+                await updateDoc(contactDocRef, {
+                    tasks: currentEditingContact.tasks,
+                    updatedAt: Date.now()
+                });
+
+                // Re-render tasks in the modal
+                renderTasks(currentEditingContact.tasks, currentEditingContact.id);
+                newTaskDescriptionInput.value = ''; // Clear input
+                newTaskDueDateInput.value = ''; // Clear input
+                displayMessage("Task added successfully!", "success");
+            } catch (error) {
+                console.error("Error adding task:", error);
+                displayMessage("Failed to add task.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        const updateTaskStatus = async (contactId, taskIndex, isCompleted) => {
+            if (!currentEditingContact || currentEditingContact.id !== contactId) {
+                displayMessage("Error: Contact not found for task update.", "error");
+                return;
+            }
+
+            showLoading();
+            try {
+                currentEditingContact.tasks[taskIndex].isCompleted = isCompleted;
+
+                const contactDocRef = doc(db, `artifacts/${appId}/users/${userId}/contacts`, contactId);
+                await updateDoc(contactDocRef, {
+                    tasks: currentEditingContact.tasks,
+                    updatedAt: Date.now()
+                });
+                renderTasks(currentEditingContact.tasks, currentEditingContact.id); // Re-render to apply strikethrough
+                displayMessage("Task status updated!", "success");
+            } catch (error) {
+                console.error("Error updating task status:", error);
+                displayMessage("Failed to update task status.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+        const deleteTaskFromContact = async (contactId, taskIndex) => {
+            if (!currentEditingContact || currentEditingContact.id !== contactId) {
+                displayMessage("Error: Contact not found for task deletion.", "error");
+                return;
+            }
+
+            showLoading();
+            try {
+                currentEditingContact.tasks.splice(taskIndex, 1); // Remove task from local array
+
+                const contactDocRef = doc(db, `artifacts/${appId}/users/${userId}/contacts`, contactId);
+                await updateDoc(contactDocRef, {
+                    tasks: currentEditingContact.tasks,
+                    updatedAt: Date.now()
+                });
+                renderTasks(currentEditingContact.tasks, currentEditingContact.id); // Re-render tasks
+                displayMessage("Task deleted successfully!", "success");
+            } catch (error) {
+                console.error("Error deleting task:", error);
+                displayMessage("Failed to delete task.", "error");
+            } finally {
+                hideLoading();
+            }
+        };
+
+
+        // --- Event Listeners ---
+        addContactBtn.addEventListener('click', () => addContact({
+            name: contactNameInput.value.trim(),
+            email: contactEmailInput.value.trim(),
+            phone: contactPhoneInput.value.trim(),
+            company: contactCompanyInput.value.trim(),
+            notes: contactNotesInput.value.trim(),
+            status: contactStatusInput.value
+        }).then(clearAddContactForm)); // Clear form after adding
+
+        saveEditBtn.addEventListener('click', saveContactEdit);
+        cancelEditBtn.addEventListener('click', () => hideModal(editContactModal));
+        confirmDeleteBtn.addEventListener('click', deleteContact);
+        cancelDeleteBtn.addEventListener('click', () => {
+            hideModal(deleteConfirmModal);
+            contactToDeleteId = null;
+        });
+
+        // Search input and filter dropdown event listeners
+        searchContactsInput.addEventListener('keyup', filterContacts);
+        searchButton.addEventListener('click', filterContacts);
+        filterStatusDropdown.addEventListener('change', filterContacts);
+
+        // Export/Import Event Listeners
+        exportCsvBtn.addEventListener('click', exportContactsToCsv);
+        importCsvInput.addEventListener('change', importContactsFromCsv);
+
+        // Collapsible header logic for Add New Contact
+        addContactHeader.addEventListener('click', () => {
+            addContactHeader.classList.toggle('expanded');
+            if (addContactContent.style.display === 'block') {
+                addContactContent.style.display = 'none';
+            } else {
+                addContactContent.style.display = 'block';
+            }
+        });
+
+        // Collapsible header logic for Tasks in Edit Modal
+        editTasksHeader.addEventListener('click', () => {
+            editTasksHeader.classList.toggle('expanded');
+            if (editTasksContent.style.display === 'block') {
+                editTasksContent.style.display = 'none';
+            } else {
+                editTasksContent.style.display = 'block';
+            }
+        });
+
+        // Add Task button listener
+        addTaskBtn.addEventListener('click', addTaskToContact);
+
+
+        // Initialize Firebase on page load
+        initializeFirebase();
+    </script>
+
+</body>
+</html>
