@@ -612,9 +612,6 @@
             <div class="spinner"></div>
         </div>
 
-        <p class="text-gray-500 text-sm mt-8 text-center">
-            <span class="font-bold text-red-600">Disclaimer:</span> This is a simplified CRM Lite for demonstration and personal use. It does not offer advanced features, robust security, or enterprise-level capabilities of full CRM systems.
-        </p>
         <p class="text-gray-500 text-xs mt-2 text-center" id="userIdDisplay"></p>
     </div>
 
@@ -623,11 +620,23 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase configuration and initialization (MANDATORY GLOBALS)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        // Fix: Correctly reference __initial_auth_token
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+        // --- Firebase configuration (HARDCODED for GitHub Pages) ---
+        // REPLACE with your actual Firebase project configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4zTA5XGJADWLrTjS_GtlJgfhDfMdr7HM",
+            authDomain: "thynkrcrmlite.firebaseapp.com",
+            projectId: "thynkrcrmlite",
+            storageBucket: "thynkrcrmlite.firebasestorage.app",
+            messagingSenderId: "619362346374",
+            appId: "1:619362346374:web:916ed49b80fc4a5a157807",
+            measurementId: "G-32QKE300RP" // Optional, remove if not using Analytics
+        };
+
+        // For GitHub Pages, use the projectId as the appId for Firestore paths
+        const appId = firebaseConfig.projectId;
+
+        // No __initial_auth_token needed for GitHub Pages, as we'll use signInAnonymously directly
+        // const initialAuthToken = null; // This line is no longer needed
 
         let app, db, auth, userId;
         let contactsCollectionRef; // Reference to the user-specific contacts collection
@@ -689,16 +698,8 @@
             try {
                 showLoading();
 
-                // Log the raw __firebase_config for debugging
-                console.log("Raw __firebase_config:", typeof __firebase_config !== 'undefined' ? __firebase_config : "undefined or not available");
-
-                // Check if firebaseConfig is properly set
-                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
-                    displayMessage("Firebase configuration is missing or incomplete. Please ensure your Firebase project is correctly linked to this Canvas.", "error");
-                    console.error("Firebase config is empty or invalid:", firebaseConfig);
-                    hideLoading();
-                    return; // Stop initialization if config is bad
-                }
+                // No need to check for __firebase_config or __app_id as they are not used on GitHub Pages
+                // The firebaseConfig object is now hardcoded directly above this function.
 
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
@@ -714,11 +715,8 @@
                         loadContacts();
                     } else {
                         // Sign in anonymously if no user is authenticated
-                        if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
+                        // No __initial_auth_token on GitHub Pages, so always use signInAnonymously
+                        await signInAnonymously(auth);
                     }
                     if (!user) hideLoading(); // Only hide if no user, otherwise loadContacts will hide
                 });
@@ -1206,11 +1204,11 @@
 
                     // Add event listeners for checkbox and delete button
                     taskItem.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
-                        const taskIndex = parseInt(e.target.dataset.task-index);
+                        const taskIndex = parseInt(e.target.dataset.taskIndex);
                         updateTaskStatus(contactId, taskIndex, e.target.checked);
                     });
                     taskItem.querySelector('.delete-task-btn').addEventListener('click', (e) => {
-                        const taskIndex = parseInt(e.currentTarget.dataset.task-index);
+                        const taskIndex = parseInt(e.currentTarget.dataset.taskIndex);
                         deleteTaskFromContact(contactId, taskIndex);
                     });
                 });
