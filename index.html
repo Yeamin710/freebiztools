@@ -118,7 +118,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
     <!-- Header -->
     <header class="bg-white shadow-sm py-4 px-6 md:px-12 lg:px-24 flex items-center justify-between rounded-b-lg">
@@ -128,8 +128,7 @@
             <a href="#tools-section" class="text-gray-600 hover:text-gray-900 font-medium">Tools</a>
             <a href="crm-lite.html" target="_blank" class="text-gray-600 hover:text-gray-900 font-medium">CRM Lite</a>
             <a href="blog.html" class="text-gray-600 hover:text-gray-900 font-medium">Blog</a>
-            <a href="about.html" class="text-gray-600 hover:text-gray-900 font-medium">About</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900 font-medium">Contact</a>
+            <a href="about.html" class="text-gray-600 hover:text-gray-900 font-medium">Contact</a>
         </nav>
         <div class="flex items-center space-x-4">
             <!-- User Icon -->
@@ -307,18 +306,29 @@
     </div>
 
     <script type="module">
-        // Firebase imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Firebase imports - ALL UPDATED TO 12.0.0
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
 
-        // Global variables provided by the Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // YOUR Firebase project's configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4zTA5XGJADWLrTjS_GtlJgfhDfMdr7HM",
+            authDomain: "thynkrcrmlite.firebaseapp.com",
+            projectId: "thynkrcrmlite",
+            storageBucket: "thynkrcrmlite.firebasestorage.app",
+            messagingSenderId: "619362346374",
+            appId: "1:619362346374:web:916ed49b80fc4a5a157807",
+            measurementId: "G-32QKE300RP"
+        };
+
+        // For GitHub Pages, we'll use the projectId as a unique identifier for the collection path
+        const githubAppId = firebaseConfig.projectId;
 
         let db;
         let auth;
+        let analytics; // Declare analytics variable
 
         // Initialize Firebase and authenticate
         const initializeFirebase = async () => {
@@ -326,12 +336,10 @@
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
+                analytics = getAnalytics(app); // Initialize Analytics
 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // For public-facing features like newsletter, anonymous sign-in is suitable.
+                await signInAnonymously(auth);
                 console.log("Firebase initialized and authenticated.");
             } catch (error) {
                 console.error("Error initializing Firebase or authenticating:", error);
@@ -438,8 +446,9 @@
                 }
 
                 try {
-                    // Use the provided __app_id for the Firestore collection path
-                    const newsletterCollectionRef = collection(db, `artifacts/${appId}/public/data/newsletter_subscribers`);
+                    // Use the githubAppId (which is your Firebase Project ID) for the collection path
+                    // This creates a collection like: /artifacts/your-project-id/public/data/newsletter_subscribers
+                    const newsletterCollectionRef = collection(db, `artifacts/${githubAppId}/public/data/newsletter_subscribers`);
 
                     await retryOperation(async () => {
                         await addDoc(newsletterCollectionRef, {
