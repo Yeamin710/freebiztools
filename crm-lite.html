@@ -617,8 +617,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Removed signInWithCustomToken as it's not used with anonymous auth on GitHub Pages
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Keeping Analytics for now
 
         // --- Firebase configuration (HARDCODED for GitHub Pages) ---
         // REPLACE with your actual Firebase project configuration
@@ -634,9 +636,6 @@
 
         // For GitHub Pages, use the projectId as the appId for Firestore paths
         const appId = firebaseConfig.projectId;
-
-        // No __initial_auth_token needed for GitHub Pages, as we'll use signInAnonymously directly
-        // const initialAuthToken = null; // This line is no longer needed
 
         let app, db, auth, userId;
         let contactsCollectionRef; // Reference to the user-specific contacts collection
@@ -698,12 +697,14 @@
             try {
                 showLoading();
 
-                // No need to check for __firebase_config or __app_id as they are not used on GitHub Pages
-                // The firebaseConfig object is now hardcoded directly above this function.
-
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
+
+                // Initialize Analytics if measurementId is present in config
+                if (firebaseConfig.measurementId) {
+                    getAnalytics(app);
+                }
 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
@@ -715,7 +716,6 @@
                         loadContacts();
                     } else {
                         // Sign in anonymously if no user is authenticated
-                        // No __initial_auth_token on GitHub Pages, so always use signInAnonymously
                         await signInAnonymously(auth);
                     }
                     if (!user) hideLoading(); // Only hide if no user, otherwise loadContacts will hide
