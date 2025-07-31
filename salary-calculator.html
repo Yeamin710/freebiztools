@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary After Tax Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        canvas {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #fefefe;
+            width: 100%; /* Make canvas responsive */
+            height: 200px; /* Fixed height for the chart */
+        }
+        /* Custom radio button styling for mode selection */
+        .mode-toggle input[type="radio"] {
+            display: none;
+        }
+        .mode-toggle label {
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+            flex: 1;
+            border: 1px solid #d1d5db; /* Light gray border */
+            color: #4b5563; /* Gray text */
+        }
+        .mode-toggle input[type="radio"]:checked + label {
+            background-color: #1f2937; /* Dark gray */
+            color: #ffffff;
+            border-color: #1f2937;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .mode-toggle label:hover:not(.mode-toggle input[type="radio"]:checked + label) {
+            background-color: #e5e7eb; /* Lighter gray on hover */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Salary After Tax Calculator</h2>
+
+        <!-- Mode Selection -->
+        <div class="mb-6 flex space-x-2 p-1 bg-gray-100 rounded-lg mode-toggle">
+            <input type="radio" id="simpleMode" name="calcMode" value="simple" checked>
+            <label for="simpleMode">Simple Tax Rate</label>
+
+            <input type="radio" id="advancedMode" name="calcMode" value="advanced">
+            <label for="advancedMode">Tax Slabs (Advanced)</label>
+        </div>
+
+        <!-- Simple Mode Inputs -->
+        <div id="simpleModeInputs" class="mb-5">
+            <label for="grossSalarySimple" class="block text-gray-700 text-sm font-medium mb-2">Gross Annual Salary ($)</label>
+            <input type="number" id="grossSalarySimple" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 50000">
+
+            <label for="taxRateSimple" class="block text-gray-700 text-sm font-medium mb-2 mt-4">Estimated Tax Rate (%)</label>
+            <input type="number" id="taxRateSimple" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 20">
+        </div>
+
+        <!-- Advanced Mode Inputs (Hidden by default) -->
+        <div id="advancedModeInputs" class="mb-6 hidden">
+            <label for="grossSalaryAdvanced" class="block text-gray-700 text-sm font-medium mb-2">Gross Annual Salary ($)</label>
+            <input type="number" id="grossSalaryAdvanced" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 700000">
+
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 mt-6">Define Tax Slabs</h3>
+            <div class="p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm mb-4">
+                <p class="font-bold mb-2">Instructions for Tax Slabs:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Enter the upper limit of each income bracket in "Income Up To".</li>
+                    <li>Enter the tax percentage for that specific bracket in "Tax Rate".</li>
+                    <li>Slabs must be entered in **ascending order** of "Income Up To".</li>
+                    <li>The first slab typically starts from 0 income.</li>
+                    <li>Example: If $350k is 0%, next $100k is 5%, next $400k is 10%:
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                            <li>Income Up To: 350000, Tax Rate: 0</li>
+                            <li>Income Up To: 450000, Tax Rate: 5</li>
+                            <li>Income Up To: 850000, Tax Rate: 10</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div id="taxSlabsContainer" class="space-y-3 mb-4">
+                <!-- Default tax slab row will be added by JS -->
+            </div>
+            <button id="addSlabBtn" class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition duration-200 text-sm">
+                Add Tax Slab
+            </button>
+        </div>
+
+        <div class="flex space-x-4 mt-6">
+            <button id="calculateBtn" class="flex-1 bg-gray-800 text-white py-3 rounded-md font-semibold hover:bg-gray-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Calculate Net Salary
+            </button>
+            <button id="resetBtn" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-md font-semibold hover:bg-gray-300 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Reset
+            </button>
+        </div>
+
+        <div id="results" class="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-md hidden">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Results:</h3>
+            <p class="text-gray-700 mb-2">Gross Annual Salary: <span id="displayGrossSalary" class="font-medium text-gray-900"></span></p>
+            <p class="text-gray-700 mb-2">Estimated Tax Paid: <span id="displayTaxPaid" class="font-medium text-gray-900"></span></p>
+            <p class="text-gray-700 text-lg font-bold mb-4">Net Annual Salary: <span id="displayNetSalary" class="text-green-600"></span></p>
+
+            <p class="text-gray-700 mb-2">Net Monthly Salary: <span id="displayNetMonthly" class="font-medium text-gray-900"></span></p>
+            <p class="text-gray-700 mb-2">Net Weekly Salary: <span id="displayNetWeekly" class="font-medium text-gray-900"></span></p>
+
+            <canvas id="salaryChart" class="mt-6"></canvas>
+
+            <p class="text-gray-500 text-sm mt-4">
+                <span class="font-bold text-red-600">Disclaimer:</span> This calculator provides estimations based on the rates you provide. It does not account for all tax complexities (e.g., deductions, exemptions, specific income types, or individual circumstances) and is not a substitute for professional tax advice or official government tax calculations. Always consult a qualified tax professional for accurate tax planning.
+            </p>
+        </div>
+
+        <div id="errorMessage" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden" role="alert">
+            <!-- Error message will be dynamically set by JS -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const simpleModeRadio = document.getElementById('simpleMode');
+            const advancedModeRadio = document.getElementById('advancedMode');
+            const simpleModeInputs = document.getElementById('simpleModeInputs');
+            const advancedModeInputs = document.getElementById('advancedModeInputs');
+
+            const grossSalarySimpleInput = document.getElementById('grossSalarySimple');
+            const taxRateSimpleInput = document.getElementById('taxRateSimple');
+            const grossSalaryAdvancedInput = document.getElementById('grossSalaryAdvanced');
+
+            const taxSlabsContainer = document.getElementById('taxSlabsContainer');
+            const addSlabBtn = document.getElementById('addSlabBtn');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const resultsDiv = document.getElementById('results');
+            const displayGrossSalary = document.getElementById('displayGrossSalary');
+            const displayTaxPaid = document.getElementById('displayTaxPaid');
+            const displayNetSalary = document.getElementById('displayNetSalary');
+            const displayNetMonthly = document.getElementById('displayNetMonthly');
+            const displayNetWeekly = document.getElementById('displayNetWeekly');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const salaryChartCanvas = document.getElementById('salaryChart');
+            const ctx = salaryChartCanvas.getContext('2d');
+
+            // Function to format currency
+            const formatCurrency = (amount) => {
+                return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            };
+
+            // Function to add a new tax slab row
+            const addTaxSlabRow = (incomeUpTo = '', taxRate = '') => {
+                const slabRow = document.createElement('div');
+                slabRow.className = 'flex flex-col sm:flex-row items-end sm:items-center gap-3 tax-slab-row';
+                slabRow.innerHTML = `
+                    <div class="flex-1 w-full">
+                        <label class="block text-gray-700 text-sm font-medium mb-1">Income Up To ($)</label>
+                        <input type="number" class="income-up-to w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 30000" value="${incomeUpTo}">
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-gray-700 text-sm font-medium mb-1">Tax Rate (%)</label>
+                        <input type="number" class="tax-rate w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 5" value="${taxRate}">
+                    </div>
+                    <button type="button" class="remove-slab-btn p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                        </svg>
+                    </button>
+                `;
+                taxSlabsContainer.appendChild(slabRow);
+                slabRow.querySelector('.remove-slab-btn').addEventListener('click', () => {
+                    slabRow.remove();
+                });
+            };
+
+            // Function to draw the bar chart
+            const drawChart = (gross, tax, net) => {
+                // Clear previous drawings
+                ctx.clearRect(0, 0, salaryChartCanvas.width, salaryChartCanvas.height);
+
+                // Set canvas dimensions dynamically for responsiveness
+                const containerWidth = salaryChartCanvas.offsetWidth;
+                salaryChartCanvas.width = containerWidth;
+                salaryChartCanvas.height = 200; // Keep height fixed
+
+                const chartHeight = salaryChartCanvas.height - 40; // Leave space for labels
+                const barWidth = (salaryChartCanvas.width / 3) * 0.6; // 60% of available width per bar
+                const barSpacing = (salaryChartCanvas.width - (barWidth * 3)) / 4; // Space between bars
+
+                // Max value for scaling
+                const maxValue = gross;
+
+                ctx.textAlign = 'center';
+                ctx.font = '12px Inter';
+
+                // Draw Gross Salary Bar
+                const grossHeight = (gross / maxValue) * chartHeight;
+                ctx.fillStyle = '#4B5563'; // Gray
+                ctx.fillRect(barSpacing, chartHeight - grossHeight + 20, barWidth, grossHeight);
+                ctx.fillStyle = '#374151'; // Darker gray for label
+                ctx.fillText('Gross', barSpacing + barWidth / 2, chartHeight + 35);
+                ctx.fillText(formatCurrency(gross), barSpacing + barWidth / 2, chartHeight - grossHeight + 15);
+
+                // Draw Tax Paid Bar
+                const taxHeight = (tax / maxValue) * chartHeight;
+                ctx.fillStyle = '#EF4444'; // Red
+                ctx.fillRect(barSpacing * 2 + barWidth, chartHeight - taxHeight + 20, barWidth, taxHeight);
+                ctx.fillStyle = '#DC2626'; // Darker red for label
+                ctx.fillText('Tax', barSpacing * 2 + barWidth + barWidth / 2, chartHeight + 35);
+                ctx.fillText(formatCurrency(tax), barSpacing * 2 + barWidth + barWidth / 2, chartHeight - taxHeight + 15);
+
+                // Draw Net Salary Bar
+                const netHeight = (net / maxValue) * chartHeight;
+                ctx.fillStyle = '#10B981'; // Green
+                ctx.fillRect(barSpacing * 3 + barWidth * 2, chartHeight - netHeight + 20, barWidth, netHeight);
+                ctx.fillStyle = '#059669'; // Darker green for label
+                ctx.fillText('Net', barSpacing * 3 + barWidth * 2 + barWidth / 2, chartHeight + 35);
+                ctx.fillText(formatCurrency(net), barSpacing * 3 + barWidth * 2 + barWidth / 2, chartHeight - netHeight + 15);
+            };
+
+            const calculateAndDisplay = () => {
+                let grossSalary;
+                let totalTax = 0;
+                let validationError = '';
+
+                if (simpleModeRadio.checked) {
+                    grossSalary = parseFloat(grossSalarySimpleInput.value);
+                    const taxRate = parseFloat(taxRateSimpleInput.value);
+
+                    if (isNaN(grossSalary) || grossSalary < 0 || isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+                        validationError = "Please enter valid numbers for both Gross Annual Salary (non-negative) and Estimated Tax Rate (between 0-100%).";
+                    } else {
+                        totalTax = (grossSalary * taxRate) / 100;
+                    }
+                } else { // Advanced Mode
+                    grossSalary = parseFloat(grossSalaryAdvancedInput.value);
+
+                    if (isNaN(grossSalary) || grossSalary < 0) {
+                        validationError = "Please ensure Gross Annual Salary is a valid non-negative number.";
+                    } else {
+                        const taxSlabs = [];
+                        let isValidSlabs = true;
+                        let prevIncomeUpTo = -Infinity;
+
+                        document.querySelectorAll('.tax-slab-row').forEach(row => {
+                            const incomeUpToInput = row.querySelector('.income-up-to');
+                            const taxRateInput = row.querySelector('.tax-rate');
+
+                            const incomeUpTo = parseFloat(incomeUpToInput.value);
+                            const taxRate = parseFloat(taxRateInput.value);
+
+                            if (isNaN(incomeUpTo) || incomeUpTo < 0 || isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+                                isValidSlabs = false;
+                                return;
+                            }
+
+                            if (incomeUpTo <= prevIncomeUpTo) {
+                                isValidSlabs = false;
+                                return;
+                            }
+                            prevIncomeUpTo = incomeUpTo;
+
+                            taxSlabs.push({ incomeUpTo, taxRate });
+                        });
+
+                        if (!isValidSlabs) {
+                            validationError = "Each tax slab must have a valid 'Income Up To' (non-negative) and 'Tax Rate' (between 0-100%). Income Up To values must be in ascending order.";
+                        } else {
+                            // Sort slabs by incomeUpTo to ensure correct calculation order
+                            taxSlabs.sort((a, b) => a.incomeUpTo - b.incomeUpTo);
+
+                            let remainingSalary = grossSalary;
+                            let previousSlabLimit = 0;
+
+                            for (const slab of taxSlabs) {
+                                if (remainingSalary <= 0) break;
+
+                                const taxableAmountInSlab = Math.min(remainingSalary, slab.incomeUpTo - previousSlabLimit);
+
+                                if (taxableAmountInSlab > 0) {
+                                    totalTax += (taxableAmountInSlab * slab.taxRate) / 100;
+                                    remainingSalary -= taxableAmountInSlab;
+                                }
+                                previousSlabLimit = slab.incomeUpTo;
+                            }
+                        }
+                    }
+                }
+
+                if (validationError) {
+                    errorMessageDiv.textContent = validationError;
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    ctx.clearRect(0, 0, salaryChartCanvas.width, salaryChartCanvas.height);
+                    return;
+                } else {
+                    errorMessageDiv.classList.add('hidden');
+                }
+
+                const netSalary = grossSalary - totalTax;
+                const netMonthly = netSalary / 12;
+                const netWeekly = netSalary / 52;
+
+                // Display results
+                displayGrossSalary.textContent = formatCurrency(grossSalary);
+                displayTaxPaid.textContent = formatCurrency(totalTax);
+                displayNetSalary.textContent = formatCurrency(netSalary);
+                displayNetMonthly.textContent = formatCurrency(netMonthly);
+                displayNetWeekly.textContent = formatCurrency(netWeekly);
+
+                resultsDiv.classList.remove('hidden');
+
+                // Draw the chart
+                drawChart(grossSalary, totalTax, netSalary);
+            };
+
+            const switchMode = () => {
+                resultsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                ctx.clearRect(0, 0, salaryChartCanvas.width, salaryChartCanvas.height);
+
+                if (simpleModeRadio.checked) {
+                    simpleModeInputs.classList.remove('hidden');
+                    advancedModeInputs.classList.add('hidden');
+                    // Clear advanced inputs when switching to simple
+                    grossSalaryAdvancedInput.value = '';
+                    taxSlabsContainer.innerHTML = '';
+                    addTaxSlabRow(); // Add back one default slab
+                } else {
+                    simpleModeInputs.classList.add('hidden');
+                    advancedModeInputs.classList.remove('hidden');
+                    // Clear simple inputs when switching to advanced
+                    grossSalarySimpleInput.value = '';
+                    taxRateSimpleInput.value = '';
+                    // Ensure there's at least one slab row when switching to advanced
+                    if (taxSlabsContainer.children.length === 0) {
+                        addTaxSlabRow();
+                    }
+                }
+            };
+
+            // Event Listeners
+            simpleModeRadio.addEventListener('change', switchMode);
+            advancedModeRadio.addEventListener('change', switchMode);
+            addSlabBtn.addEventListener('click', () => addTaxSlabRow());
+            calculateBtn.addEventListener('click', calculateAndDisplay);
+
+            resetBtn.addEventListener('click', () => {
+                grossSalarySimpleInput.value = '';
+                taxRateSimpleInput.value = '';
+                grossSalaryAdvancedInput.value = '';
+                taxSlabsContainer.innerHTML = ''; // Clear all slabs
+                addTaxSlabRow(); // Add back one default slab
+                resultsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                ctx.clearRect(0, 0, salaryChartCanvas.width, salaryChartCanvas.height);
+                simpleModeRadio.checked = true; // Default to simple mode on reset
+                switchMode(); // Apply mode change
+            });
+
+            // Initial setup
+            switchMode(); // Set initial visibility based on default checked radio
+            addTaxSlabRow(); // Add one default slab row on load for advanced mode
+            window.addEventListener('resize', () => {
+                if (!resultsDiv.classList.contains('hidden')) {
+                    calculateAndDisplay(); // Recalculate and redraw if results are visible
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
