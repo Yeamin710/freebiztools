@@ -688,6 +688,15 @@
         const initializeFirebase = async () => {
             try {
                 showLoading();
+
+                // Check if firebaseConfig is properly set
+                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+                    displayMessage("Firebase configuration is missing or incomplete. Please ensure your Firebase project is correctly linked to this Canvas.", "error");
+                    console.error("Firebase config is empty or invalid:", firebaseConfig);
+                    hideLoading();
+                    return; // Stop initialization if config is bad
+                }
+
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
@@ -713,7 +722,7 @@
 
             } catch (error) {
                 console.error("Error initializing Firebase or authenticating:", error);
-                displayMessage("Failed to initialize the app. Please try again later.", "error");
+                displayMessage("Failed to initialize the app. Please ensure Firebase Authentication (Anonymous) and Firestore Database are enabled in your Firebase project. Also, check your network connection.", "error");
                 hideLoading();
             }
         };
@@ -1194,11 +1203,11 @@
 
                     // Add event listeners for checkbox and delete button
                     taskItem.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
-                        const taskIndex = parseInt(e.target.dataset.taskIndex);
+                        const taskIndex = parseInt(e.target.dataset.task-index);
                         updateTaskStatus(contactId, taskIndex, e.target.checked);
                     });
                     taskItem.querySelector('.delete-task-btn').addEventListener('click', (e) => {
-                        const taskIndex = parseInt(e.currentTarget.dataset.taskIndex);
+                        const taskIndex = parseInt(e.currentTarget.dataset.task-index);
                         deleteTaskFromContact(contactId, taskIndex);
                     });
                 });
