@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Health Checker: Individual Ratios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .ratio-section-header {
+            background-color: #f3f4f6; /* Gray-100 */
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #374151; /* Gray-800 */
+            transition: background-color 0.2s;
+        }
+        .ratio-section-header:hover {
+            background-color: #e5e7eb; /* Gray-200 */
+        }
+        .ratio-section-content {
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            background-color: #ffffff;
+            display: none; /* Hidden by default */
+        }
+        .ratio-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            font-size: 0.875rem; /* text-sm */
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        .status-strong { background-color: #d1fae5; color: #065f46; } /* green-100, green-800 */
+        .status-good { background-color: #dbeafe; color: #1e40af; } /* blue-100, blue-800 */
+        .status-average { background-color: #fef3c7; color: #92400e; } /* amber-100, amber-800 */
+        .status-weak { background-color: #fee2e2; color: #991b1b; } /* red-100, red-800 */
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <!-- Back to Home Button -->
+        <div class="mb-6 text-left">
+            <a href="index.html" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Back to Home
+            </a>
+        </div>
+
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Business Health Checker</h2>
+        <p class="text-gray-600 mb-8 text-center">Select a ratio below to calculate and analyze a specific aspect of your business's health.</p>
+
+        <div class="space-y-4">
+            <!-- Gross Profit Margin Calculator -->
+            <div class="ratio-section">
+                <div class="ratio-section-header" data-target="grossProfitMarginContent">
+                    <span>Gross Profit Margin Calculator</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="grossProfitMarginContent" class="ratio-section-content">
+                    <div class="mb-4">
+                        <label for="gpmRevenue" class="block text-gray-700 text-sm font-medium mb-2">Revenue ($)</label>
+                        <input type="number" id="gpmRevenue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1000000">
+                    </div>
+                    <div class="mb-6">
+                        <label for="gpmCogs" class="block text-gray-700 text-sm font-medium mb-2">Cost of Goods Sold (COGS) ($)</label>
+                        <input type="number" id="gpmCogs" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 400000">
+                    </div>
+                    <button class="calculate-ratio-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-ratio="grossProfitMargin">Calculate</button>
+                    <button class="reset-ratio-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-ratio="grossProfitMargin">Reset</button>
+
+                    <div class="ratio-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Gross Profit Margin: <span class="result-value font-bold text-gray-900"></span> <span class="result-status ratio-status"></span></p>
+                        <p class="text-gray-500 text-sm result-description"></p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Net Profit Margin Calculator -->
+            <div class="ratio-section">
+                <div class="ratio-section-header" data-target="netProfitMarginContent">
+                    <span>Net Profit Margin Calculator</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="netProfitMarginContent" class="ratio-section-content">
+                    <div class="mb-4">
+                        <label for="npmRevenue" class="block text-gray-700 text-sm font-medium mb-2">Revenue ($)</label>
+                        <input type="number" id="npmRevenue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1000000">
+                    </div>
+                    <div class="mb-6">
+                        <label for="npmNetProfit" class="block text-gray-700 text-sm font-medium mb-2">Net Profit ($)</label>
+                        <input type="number" id="npmNetProfit" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 150000">
+                    </div>
+                    <button class="calculate-ratio-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-ratio="netProfitMargin">Calculate</button>
+                    <button class="reset-ratio-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-ratio="netProfitMargin">Reset</button>
+
+                    <div class="ratio-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Net Profit Margin: <span class="result-value font-bold text-gray-900"></span> <span class="result-status ratio-status"></span></p>
+                        <p class="text-gray-500 text-sm result-description"></p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Current Ratio Calculator -->
+            <div class="ratio-section">
+                <div class="ratio-section-header" data-target="currentRatioContent">
+                    <span>Current Ratio Calculator</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="currentRatioContent" class="ratio-section-content">
+                    <div class="mb-4">
+                        <label for="crCurrentAssets" class="block text-gray-700 text-sm font-medium mb-2">Current Assets ($)</label>
+                        <input type="number" id="crCurrentAssets" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 150000">
+                    </div>
+                    <div class="mb-6">
+                        <label for="crCurrentLiabilities" class="block text-gray-700 text-sm font-medium mb-2">Current Liabilities ($)</label>
+                        <input type="number" id="crCurrentLiabilities" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 75000">
+                    </div>
+                    <button class="calculate-ratio-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-ratio="currentRatio">Calculate</button>
+                    <button class="reset-ratio-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-ratio="currentRatio">Reset</button>
+
+                    <div class="ratio-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Current Ratio: <span class="result-value font-bold text-gray-900"></span> <span class="result-status ratio-status"></span></p>
+                        <p class="text-gray-500 text-sm result-description"></p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Debt-to-Equity Ratio Calculator -->
+            <div class="ratio-section">
+                <div class="ratio-section-header" data-target="debtToEquityRatioContent">
+                    <span>Debt-to-Equity Ratio Calculator</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="debtToEquityRatioContent" class="ratio-section-content">
+                    <div class="mb-4">
+                        <label for="dterTotalLiabilities" class="block text-gray-700 text-sm font-medium mb-2">Total Liabilities ($)</label>
+                        <input type="number" id="dterTotalLiabilities" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 200000">
+                    </div>
+                    <div class="mb-6">
+                        <label for="dterShareholdersEquity" class="block text-gray-700 text-sm font-medium mb-2">Shareholders' Equity ($)</label>
+                        <input type="number" id="dterShareholdersEquity" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 300000">
+                    </div>
+                    <button class="calculate-ratio-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-ratio="debtToEquityRatio">Calculate</button>
+                    <button class="reset-ratio-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-ratio="debtToEquityRatio">Reset</button>
+
+                    <div class="ratio-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Debt-to-Equity Ratio: <span class="result-value font-bold text-gray-900"></span> <span class="result-status ratio-status"></span></p>
+                        <p class="text-gray-500 text-sm result-description"></p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Revenue Growth Rate Calculator -->
+            <div class="ratio-section">
+                <div class="ratio-section-header" data-target="revenueGrowthRateContent">
+                    <span>Revenue Growth Rate Calculator</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="revenueGrowthRateContent" class="ratio-section-content">
+                    <div class="mb-4">
+                        <label for="rgrCurrentRevenue" class="block text-gray-700 text-sm font-medium mb-2">Current Period Revenue ($)</label>
+                        <input type="number" id="rgrCurrentRevenue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1000000">
+                    </div>
+                    <div class="mb-6">
+                        <label for="rgrPreviousRevenue" class="block text-gray-700 text-sm font-medium mb-2">Previous Period Revenue ($)</label>
+                        <input type="number" id="rgrPreviousRevenue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 800000">
+                    </div>
+                    <button class="calculate-ratio-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-ratio="revenueGrowthRate">Calculate</button>
+                    <button class="reset-ratio-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-ratio="revenueGrowthRate">Reset</button>
+
+                    <div class="ratio-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Revenue Growth Rate: <span class="result-value font-bold text-gray-900"></span> <span class="result-status ratio-status"></span></p>
+                        <p class="text-gray-500 text-sm result-description"></p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Combined Health Checker (Advanced) - Link to separate tool -->
+            <div class="ratio-section">
+                <div class="ratio-section-header bg-gray-700 text-white hover:bg-gray-600" data-target="combinedHealthCheckerInfo">
+                    <span>Combined Business Health Checker (Advanced)</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="combinedHealthCheckerInfo" class="ratio-section-content">
+                    <p class="text-gray-700 mb-4">For a comprehensive business health analysis, including multiple ratios and a visual radar chart, please use the dedicated **Combined Business Health Checker** tool.</p>
+                    <a href="combined-business-health-checker-advanced.html" class="inline-block bg-blue-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-blue-700 transition duration-200">Go to Combined Health Checker</a>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="text-gray-500 text-sm mt-8 text-center">
+            <span class="font-bold text-red-600">Disclaimer:</span> These calculators provide simplified analyses based on general benchmarks. They are not substitutes for professional financial analysis, industry-specific expertise, or comprehensive business consultation. Benchmarks can vary significantly by industry and company size.
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Benchmarks for ratios (general guidelines, can be customized)
+            // Scores: 0=Weak, 1=Average, 2=Good, 3=Strong
+            const ratioBenchmarks = {
+                grossProfitMargin: {
+                    name: 'Gross Profit Margin',
+                    description: 'Indicates the percentage of revenue left after deducting the cost of goods sold. Higher is generally better.',
+                    strong: 0.50, // 50%
+                    good: 0.30,  // 30%
+                    average: 0.15, // 15%
+                    unit: '%',
+                    calculate: (revenue, cogs) => revenue > 0 ? (revenue - cogs) / revenue : NaN,
+                    inputs: [
+                        { id: 'gpmRevenue', label: 'Revenue ($)', placeholder: 'e.g., 1000000' },
+                        { id: 'gpmCogs', label: 'Cost of Goods Sold (COGS) ($)', placeholder: 'e.g., 400000' }
+                    ],
+                    validate: (revenue, cogs) => {
+                        if (isNaN(revenue) || revenue < 0 || isNaN(cogs) || cogs < 0) return "Please enter valid non-negative numbers for Revenue and COGS.";
+                        if (revenue === 0 && cogs > 0) return "Revenue must be greater than zero if COGS is entered.";
+                        return "";
+                    },
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.50) return 3;
+                        if (value >= 0.30) return 2;
+                        if (value >= 0.15) return 1;
+                        return 0;
+                    }
+                },
+                netProfitMargin: {
+                    name: 'Net Profit Margin',
+                    description: 'Shows the percentage of revenue left after all expenses, including taxes, have been deducted. Higher is generally better.',
+                    strong: 0.15, // 15%
+                    good: 0.08,  // 8%
+                    average: 0.03, // 3%
+                    unit: '%',
+                    calculate: (revenue, netProfit) => revenue > 0 ? netProfit / revenue : NaN,
+                    inputs: [
+                        { id: 'npmRevenue', label: 'Revenue ($)', placeholder: 'e.g., 1000000' },
+                        { id: 'npmNetProfit', label: 'Net Profit ($)', placeholder: 'e.g., 150000' }
+                    ],
+                    validate: (revenue, netProfit) => {
+                        if (isNaN(revenue) || revenue < 0 || isNaN(netProfit) || netProfit < 0) return "Please enter valid non-negative numbers for Revenue and Net Profit.";
+                        if (revenue === 0 && netProfit > 0) return "Revenue must be greater than zero if Net Profit is entered.";
+                        return "";
+                    },
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.15) return 3;
+                        if (value >= 0.08) return 2;
+                        if (value >= 0.03) return 1;
+                        return 0;
+                    }
+                },
+                currentRatio: {
+                    name: 'Current Ratio',
+                    description: 'Measures a company\'s ability to pay off its short-term liabilities with its short-term assets. A ratio of 1.5-2.0 is often considered healthy.',
+                    strong: 2.0,
+                    good: 1.5,
+                    average: 1.0,
+                    unit: 'x',
+                    calculate: (currentAssets, currentLiabilities) => currentLiabilities > 0 ? currentAssets / currentLiabilities : Infinity,
+                    inputs: [
+                        { id: 'crCurrentAssets', label: 'Current Assets ($)', placeholder: 'e.g., 150000' },
+                        { id: 'crCurrentLiabilities', label: 'Current Liabilities ($)', placeholder: 'e.g., 75000' }
+                    ],
+                    validate: (currentAssets, currentLiabilities) => {
+                        if (isNaN(currentAssets) || currentAssets < 0 || isNaN(currentLiabilities) || currentLiabilities < 0) return "Please enter valid non-negative numbers for Current Assets and Current Liabilities.";
+                        if (currentLiabilities === 0 && currentAssets > 0) return "Current Liabilities must be greater than zero if Current Assets are entered.";
+                        return "";
+                    },
+                    scoreMap: (value) => {
+                        if (isNaN(value) || value === Infinity) return 0; // Infinity means liabilities are zero, which is good, but for ratio, it implies no debt
+                        if (value >= 2.0) return 3;
+                        if (value >= 1.5) return 2;
+                        if (value >= 1.0) return 1;
+                        return 0;
+                    }
+                },
+                debtToEquityRatio: {
+                    name: 'Debt-to-Equity Ratio',
+                    description: 'Indicates the proportion of equity and debt used to finance a company\'s assets. Lower is generally better, indicating less reliance on debt.',
+                    strong: 0.5, // 0.5x or less
+                    good: 1.0,   // 1.0x
+                    average: 2.0, // 2.0x
+                    unit: 'x',
+                    calculate: (totalLiabilities, shareholdersEquity) => shareholdersEquity > 0 ? totalLiabilities / shareholdersEquity : Infinity,
+                    inputs: [
+                        { id: 'dterTotalLiabilities', label: 'Total Liabilities ($)', placeholder: 'e.g., 200000' },
+                        { id: 'dterShareholdersEquity', label: 'Shareholders\' Equity ($)', placeholder: 'e.g., 300000' }
+                    ],
+                    validate: (totalLiabilities, shareholdersEquity) => {
+                        if (isNaN(totalLiabilities) || totalLiabilities < 0 || isNaN(shareholdersEquity) || shareholdersEquity < 0) return "Please enter valid non-negative numbers for Total Liabilities and Shareholders' Equity.";
+                        if (shareholdersEquity === 0 && totalLiabilities > 0) return "Shareholders' Equity must be greater than zero if Total Liabilities are entered.";
+                        return "";
+                    },
+                    scoreMap: (value) => {
+                        if (isNaN(value) || value === Infinity) return 0; // Infinity means equity is zero, which is bad
+                        if (value <= 0.5) return 3;
+                        if (value <= 1.0) return 2;
+                        if (value <= 2.0) return 1;
+                        return 0;
+                    }
+                },
+                revenueGrowthRate: {
+                    name: 'Revenue Growth Rate',
+                    description: 'Measures the percentage increase in revenue over a period. Positive growth is crucial for expansion.',
+                    strong: 0.20, // 20%
+                    good: 0.10,  // 10%
+                    average: 0.03, // 3%
+                    unit: '%',
+                    calculate: (currentRevenue, previousRevenue) => previousRevenue > 0 ? (currentRevenue - previousRevenue) / previousRevenue : NaN,
+                    inputs: [
+                        { id: 'rgrCurrentRevenue', label: 'Current Period Revenue ($)', placeholder: 'e.g., 1000000' },
+                        { id: 'rgrPreviousRevenue', label: 'Previous Period Revenue ($)', placeholder: 'e.g., 800000' }
+                    ],
+                    validate: (currentRevenue, previousRevenue) => {
+                        if (isNaN(currentRevenue) || currentRevenue < 0 || isNaN(previousRevenue) || previousRevenue < 0) return "Please enter valid non-negative numbers for Current and Previous Revenue.";
+                        if (previousRevenue === 0 && currentRevenue > 0) return "Previous Revenue must be greater than zero to calculate growth rate if Current Revenue is entered.";
+                        return "";
+                    },
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.20) return 3;
+                        if (value >= 0.10) return 2;
+                        if (value >= 0.03) return 1;
+                        return 0;
+                    }
+                }
+            };
+
+            // Function to format numbers (currency, percentage, or plain)
+            const formatNumber = (value, type) => {
+                if (isNaN(value) || value === Infinity) return 'N/A';
+                if (type === '%') {
+                    return `${(value * 100).toFixed(2)}%`;
+                } else if (type === '$') {
+                    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                } else {
+                    return value.toFixed(2);
+                }
+            };
+
+            // Function to get status text and class
+            const getStatusTextAndClass = (score) => {
+                if (score === 3) return { text: 'Strong', class: 'status-strong' };
+                if (score === 2) return { text: 'Good', class: 'status-good' };
+                if (score === 1) return { text: 'Average', class: 'status-average' };
+                return { text: 'Weak', class: 'status-weak' };
+            };
+
+            // Toggle section visibility
+            document.querySelectorAll('.ratio-section-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset.target;
+                    const content = document.getElementById(targetId);
+                    const arrow = header.querySelector('svg');
+
+                    // Close all other open sections
+                    document.querySelectorAll('.ratio-section-content').forEach(otherContent => {
+                        if (otherContent.id !== targetId && otherContent.style.display === 'block') {
+                            otherContent.style.display = 'none';
+                            otherContent.previousElementSibling.querySelector('svg').classList.remove('rotate-180');
+                        }
+                    });
+
+                    // Toggle current section
+                    if (content.style.display === 'block') {
+                        content.style.display = 'none';
+                        arrow.classList.remove('rotate-180');
+                    } else {
+                        content.style.display = 'block';
+                        arrow.classList.add('rotate-180');
+                    }
+                });
+            });
+
+            // Handle Calculate button clicks
+            document.querySelectorAll('.calculate-ratio-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const ratioKey = event.target.dataset.ratio;
+                    const ratioConfig = ratioBenchmarks[ratioKey];
+                    const parentContent = event.target.closest('.ratio-section-content');
+                    const inputs = ratioConfig.inputs.map(input => parseFloat(parentContent.querySelector(`#${input.id}`).value || '0'));
+
+                    const errorMessageEl = parentContent.querySelector('.error-message');
+                    const resultsEl = parentContent.querySelector('.ratio-results');
+                    const resultValueEl = resultsEl.querySelector('.result-value');
+                    const resultStatusEl = resultsEl.querySelector('.result-status');
+                    const resultDescriptionEl = resultsEl.querySelector('.result-description');
+
+                    // Validate inputs using the specific validate function for the ratio
+                    const validationError = ratioConfig.validate(...inputs);
+
+                    if (validationError) {
+                        errorMessageEl.textContent = validationError;
+                        errorMessageEl.classList.remove('hidden');
+                        resultsEl.classList.add('hidden');
+                        return;
+                    } else {
+                        errorMessageEl.classList.add('hidden');
+                    }
+
+                    const calculatedValue = ratioConfig.calculate(...inputs);
+                    const score = ratioConfig.scoreMap(calculatedValue);
+                    const { text: statusText, class: statusClass } = getStatusTextAndClass(score);
+
+                    resultValueEl.textContent = formatNumber(calculatedValue, ratioConfig.unit);
+                    resultStatusEl.textContent = statusText;
+                    resultStatusEl.className = `result-status ratio-status ${statusClass}`;
+                    resultDescriptionEl.textContent = ratioConfig.description;
+
+                    resultsEl.classList.remove('hidden');
+                });
+            });
+
+            // Handle Reset button clicks
+            document.querySelectorAll('.reset-ratio-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const ratioKey = event.target.dataset.ratio;
+                    const ratioConfig = ratioBenchmarks[ratioKey];
+                    const parentContent = event.target.closest('.ratio-section-content');
+
+                    // Clear input fields
+                    ratioConfig.inputs.forEach(input => {
+                        parentContent.querySelector(`#${input.id}`).value = '';
+                    });
+
+                    // Hide results and error messages
+                    parentContent.querySelector('.ratio-results').classList.add('hidden');
+                    parentContent.querySelector('.error-message').classList.add('hidden');
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
