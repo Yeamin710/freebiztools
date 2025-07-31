@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Strategy Adviser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .strategy-section-header {
+            background-color: #f3f4f6; /* Gray-100 */
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #374151; /* Gray-800 */
+            transition: background-color 0.2s;
+        }
+        .strategy-section-header:hover {
+            background-color: #e5e7eb; /* Gray-200 */
+        }
+        .strategy-section-content {
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            background-color: #ffffff;
+            display: none; /* Hidden by default */
+        }
+        .price-suggestion {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700; /* font-bold */
+            color: #10b981; /* green-600 */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Pricing Strategy Adviser</h2>
+        <p class="text-gray-600 mb-8 text-center">Choose a pricing strategy below to calculate a suggested selling price for your product or service.</p>
+
+        <div class="space-y-4">
+            <!-- Cost-Plus Pricing -->
+            <div class="strategy-section">
+                <div class="strategy-section-header" data-target="costPlusPricingContent">
+                    <span>Cost-Plus Pricing</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="costPlusPricingContent" class="strategy-section-content">
+                    <p class="text-gray-600 text-sm mb-4">Calculates price by adding a fixed percentage markup to the cost of your product/service.</p>
+                    <div class="mb-4">
+                        <label for="cpCost" class="block text-gray-700 text-sm font-medium mb-2">Per-Unit Cost ($)</label>
+                        <input type="number" id="cpCost" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 50">
+                    </div>
+                    <div class="mb-6">
+                        <label for="cpMarkup" class="block text-gray-700 text-sm font-medium mb-2">Markup Percentage (%)</label>
+                        <input type="number" id="cpMarkup" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 30 (for 30%)">
+                    </div>
+                    <button class="calculate-strategy-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-strategy="costPlus">Calculate Price</button>
+                    <button class="reset-strategy-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-strategy="costPlus">Reset</button>
+
+                    <div class="strategy-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Suggested Selling Price: <span class="price-suggestion" id="cpSuggestedPrice"></span></p>
+                        <p class="text-gray-500 text-sm mt-2">This price ensures a **<span id="cpMarkupDisplay"></span>** markup over your cost.</p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Value-Based Pricing -->
+            <div class="strategy-section">
+                <div class="strategy-section-header" data-target="valueBasedPricingContent">
+                    <span>Value-Based Pricing</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="valueBasedPricingContent" class="strategy-section-content">
+                    <p class="text-gray-600 text-sm mb-4">Sets price based on the perceived value to the customer, rather than just cost.</p>
+                    <div class="mb-4">
+                        <label for="vbPerceivedValue" class="block text-gray-700 text-sm font-medium mb-2">Customer's Perceived Value ($)</label>
+                        <input type="number" id="vbPerceivedValue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 100 (what value customer gets)">
+                    </div>
+                    <div class="mb-6">
+                        <label for="vbValueCapture" class="block text-gray-700 text-sm font-medium mb-2">Percentage of Value to Capture (%)</label>
+                        <input type="number" id="vbValueCapture" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 20 (for 20%)">
+                    </div>
+                    <button class="calculate-strategy-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-strategy="valueBased">Calculate Price</button>
+                    <button class="reset-strategy-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-strategy="valueBased">Reset</button>
+
+                    <div class="strategy-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Suggested Selling Price: <span class="price-suggestion" id="vbSuggestedPrice"></span></p>
+                        <p class="text-gray-500 text-sm mt-2">This price captures **<span id="vbValueCaptureDisplay"></span>** of the perceived customer value.</p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Competitive Pricing -->
+            <div class="strategy-section">
+                <div class="strategy-section-header" data-target="competitivePricingContent">
+                    <span>Competitive Pricing</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="competitivePricingContent" class="strategy-section-content">
+                    <p class="text-gray-600 text-sm mb-4">Sets price based on competitors' prices. You can choose to match, undercut, or set a premium.</p>
+                    <div class="mb-4">
+                        <label for="compCompetitorPrice" class="block text-gray-700 text-sm font-medium mb-2">Competitor's Price ($)</label>
+                        <input type="number" id="compCompetitorPrice" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 75">
+                    </div>
+                    <div class="mb-6">
+                        <label for="compStrategy" class="block text-gray-700 text-sm font-medium mb-2">Your Strategy</label>
+                        <select id="compStrategy" class="w-full px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-gray-400">
+                            <option value="match">Match Competitor Price</option>
+                            <option value="undercut">Undercut by %</option>
+                            <option value="premium">Premium by %</option>
+                        </select>
+                    </div>
+                    <div id="compPercentageInput" class="mb-6 hidden">
+                        <label for="compPercentage" class="block text-gray-700 text-sm font-medium mb-2"><span id="compPercentageLabel">Percentage (%)</span></label>
+                        <input type="number" id="compPercentage" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 10">
+                    </div>
+
+                    <button class="calculate-strategy-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-strategy="competitive">Calculate Price</button>
+                    <button class="reset-strategy-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-strategy="competitive">Reset</button>
+
+                    <div class="strategy-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Suggested Selling Price: <span class="price-suggestion" id="compSuggestedPrice"></span></p>
+                        <p class="text-gray-500 text-sm mt-2" id="compStrategyText"></p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+            <!-- Break-Even Pricing -->
+            <div class="strategy-section">
+                <div class="strategy-section-header" data-target="breakEvenPricingContent">
+                    <span>Break-Even Pricing</span>
+                    <svg class="w-5 h-5 transform transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div id="breakEvenPricingContent" class="strategy-section-content">
+                    <p class="text-gray-600 text-sm mb-4">Calculates the minimum price per unit you need to charge to cover all costs at a specific sales volume.</p>
+                    <div class="mb-4">
+                        <label for="beFixedCosts" class="block text-gray-700 text-sm font-medium mb-2">Total Fixed Costs ($)</label>
+                        <input type="number" id="beFixedCosts" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 10000">
+                    </div>
+                    <div class="mb-4">
+                        <label for="beVariableCosts" class="block text-gray-700 text-sm font-medium mb-2">Per-Unit Variable Costs ($)</label>
+                        <input type="number" id="beVariableCosts" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 5">
+                    </div>
+                    <div class="mb-6">
+                        <label for="beTargetQuantity" class="block text-gray-700 text-sm font-medium mb-2">Target Sales Quantity (Units)</label>
+                        <input type="number" id="beTargetQuantity" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1000">
+                    </div>
+                    <button class="calculate-strategy-btn bg-gray-800 text-white py-2 px-4 rounded-md font-semibold hover:bg-gray-700 transition duration-200" data-strategy="breakEven">Calculate Price</button>
+                    <button class="reset-strategy-btn bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold hover:bg-gray-300 transition duration-200 ml-2" data-strategy="breakEven">Reset</button>
+
+                    <div class="strategy-results mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md hidden">
+                        <p class="text-gray-700 mb-1">Suggested Break-Even Price: <span class="price-suggestion" id="beSuggestedPrice"></span></p>
+                        <p class="text-gray-500 text-sm mt-2">This is the minimum price per unit to cover all costs at **<span id="beTargetQuantityDisplay"></span> units**.</p>
+                    </div>
+                    <div class="error-message mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="text-gray-500 text-sm mt-8 text-center">
+            <span class="font-bold text-red-600">Disclaimer:</span> This tool provides pricing suggestions based on simplified models. Actual pricing decisions should consider market research, customer segmentation, brand positioning, competitive landscape, and overall business goals. Always consult with business and marketing professionals for comprehensive pricing strategies.
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Helper to format currency
+            const formatCurrency = (amount) => {
+                return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            };
+
+            // Helper to handle error display
+            const displayError = (element, message) => {
+                element.textContent = message;
+                element.classList.remove('hidden');
+            };
+
+            const hideError = (element) => {
+                element.classList.add('hidden');
+            };
+
+            const hideResults = (element) => {
+                element.classList.add('hidden');
+            };
+
+            // Toggle section visibility
+            document.querySelectorAll('.strategy-section-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset.target;
+                    const content = document.getElementById(targetId);
+                    const arrow = header.querySelector('svg');
+
+                    // Close all other open sections
+                    document.querySelectorAll('.strategy-section-content').forEach(otherContent => {
+                        if (otherContent.id !== targetId && otherContent.style.display === 'block') {
+                            otherContent.style.display = 'none';
+                            otherContent.previousElementSibling.querySelector('svg').classList.remove('rotate-180');
+                        }
+                    });
+
+                    // Toggle current section
+                    if (content.style.display === 'block') {
+                        content.style.display = 'none';
+                        arrow.classList.remove('rotate-180');
+                    } else {
+                        content.style.display = 'block';
+                        arrow.classList.add('rotate-180');
+                    }
+                });
+            });
+
+            // Competitive Pricing - Dynamic input visibility
+            const compStrategySelect = document.getElementById('compStrategy');
+            const compPercentageInputDiv = document.getElementById('compPercentageInput');
+            const compPercentageLabel = document.getElementById('compPercentageLabel');
+
+            compStrategySelect.addEventListener('change', () => {
+                if (compStrategySelect.value === 'undercut') {
+                    compPercentageInputDiv.classList.remove('hidden');
+                    compPercentageLabel.textContent = 'Undercut by Percentage (%)';
+                } else if (compStrategySelect.value === 'premium') {
+                    compPercentageInputDiv.classList.remove('hidden');
+                    compPercentageLabel.textContent = 'Premium by Percentage (%)';
+                } else {
+                    compPercentageInputDiv.classList.add('hidden');
+                }
+            });
+
+
+            // Handle Calculate button clicks
+            document.querySelectorAll('.calculate-strategy-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const strategy = event.target.dataset.strategy;
+                    const parentContent = event.target.closest('.strategy-section-content');
+                    const resultsEl = parentContent.querySelector('.strategy-results');
+                    const errorEl = parentContent.querySelector('.error-message');
+                    hideError(errorEl);
+                    hideResults(resultsEl);
+
+                    let suggestedPrice;
+                    let resultText = '';
+                    let isValid = true;
+
+                    if (strategy === 'costPlus') {
+                        const cost = parseFloat(document.getElementById('cpCost').value);
+                        const markup = parseFloat(document.getElementById('cpMarkup').value);
+
+                        if (isNaN(cost) || cost < 0 || isNaN(markup) || markup < 0) {
+                            displayError(errorEl, "Please enter valid non-negative numbers for Cost and Markup.");
+                            isValid = false;
+                        } else {
+                            suggestedPrice = cost * (1 + markup / 100);
+                            document.getElementById('cpSuggestedPrice').textContent = formatCurrency(suggestedPrice);
+                            document.getElementById('cpMarkupDisplay').textContent = `${markup}%`;
+                        }
+                    } else if (strategy === 'valueBased') {
+                        const perceivedValue = parseFloat(document.getElementById('vbPerceivedValue').value);
+                        const valueCapture = parseFloat(document.getElementById('vbValueCapture').value);
+
+                        if (isNaN(perceivedValue) || perceivedValue < 0 || isNaN(valueCapture) || valueCapture < 0 || valueCapture > 100) {
+                            displayError(errorEl, "Please enter valid non-negative numbers for Perceived Value. Value Capture should be 0-100%.");
+                            isValid = false;
+                        } else {
+                            suggestedPrice = perceivedValue * (valueCapture / 100);
+                            document.getElementById('vbSuggestedPrice').textContent = formatCurrency(suggestedPrice);
+                            document.getElementById('vbValueCaptureDisplay').textContent = `${valueCapture}%`;
+                        }
+                    } else if (strategy === 'competitive') {
+                        const competitorPrice = parseFloat(document.getElementById('compCompetitorPrice').value);
+                        const compStrategy = document.getElementById('compStrategy').value;
+                        const compPercentage = parseFloat(document.getElementById('compPercentage').value);
+
+                        if (isNaN(competitorPrice) || competitorPrice < 0) {
+                            displayError(errorEl, "Please enter a valid non-negative number for Competitor's Price.");
+                            isValid = false;
+                        } else if ((compStrategy === 'undercut' || compStrategy === 'premium') && (isNaN(compPercentage) || compPercentage < 0 || compPercentage > 100)) {
+                            displayError(errorEl, "Please enter a valid percentage (0-100%) for your strategy.");
+                            isValid = false;
+                        } else {
+                            if (compStrategy === 'match') {
+                                suggestedPrice = competitorPrice;
+                                resultText = `Your price matches the competitor's price of ${formatCurrency(competitorPrice)}.`;
+                            } else if (compStrategy === 'undercut') {
+                                suggestedPrice = competitorPrice * (1 - compPercentage / 100);
+                                resultText = `Your price is ${compPercentage}% lower than the competitor's price of ${formatCurrency(competitorPrice)}.`;
+                            } else if (compStrategy === 'premium') {
+                                suggestedPrice = competitorPrice * (1 + compPercentage / 100);
+                                resultText = `Your price is ${compPercentage}% higher than the competitor's price of ${formatCurrency(competitorPrice)}.`;
+                            }
+                            document.getElementById('compSuggestedPrice').textContent = formatCurrency(suggestedPrice);
+                            document.getElementById('compStrategyText').textContent = resultText;
+                        }
+                    } else if (strategy === 'breakEven') {
+                        const fixedCosts = parseFloat(document.getElementById('beFixedCosts').value);
+                        const variableCosts = parseFloat(document.getElementById('beVariableCosts').value);
+                        const targetQuantity = parseFloat(document.getElementById('beTargetQuantity').value);
+
+                        if (isNaN(fixedCosts) || fixedCosts < 0 || isNaN(variableCosts) || variableCosts < 0 || isNaN(targetQuantity) || targetQuantity <= 0) {
+                            displayError(errorEl, "Please enter valid non-negative numbers for Costs. Target Quantity must be a positive number.");
+                            isValid = false;
+                        } else {
+                            suggestedPrice = (fixedCosts + (variableCosts * targetQuantity)) / targetQuantity;
+                            document.getElementById('beSuggestedPrice').textContent = formatCurrency(suggestedPrice);
+                            document.getElementById('beTargetQuantityDisplay').textContent = targetQuantity.toLocaleString();
+                        }
+                    }
+
+                    if (isValid) {
+                        resultsEl.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Handle Reset button clicks
+            document.querySelectorAll('.reset-strategy-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const strategy = event.target.dataset.strategy;
+                    const parentContent = event.target.closest('.strategy-section-content');
+                    hideResults(parentContent.querySelector('.strategy-results'));
+                    hideError(parentContent.querySelector('.error-message'));
+
+                    if (strategy === 'costPlus') {
+                        document.getElementById('cpCost').value = '';
+                        document.getElementById('cpMarkup').value = '';
+                    } else if (strategy === 'valueBased') {
+                        document.getElementById('vbPerceivedValue').value = '';
+                        document.getElementById('vbValueCapture').value = '';
+                    } else if (strategy === 'competitive') {
+                        document.getElementById('compCompetitorPrice').value = '';
+                        document.getElementById('compStrategy').value = 'match'; // Reset to default
+                        document.getElementById('compPercentage').value = '';
+                        compPercentageInputDiv.classList.add('hidden'); // Hide percentage input
+                    } else if (strategy === 'breakEven') {
+                        document.getElementById('beFixedCosts').value = '';
+                        document.getElementById('beVariableCosts').value = '';
+                        document.getElementById('beTargetQuantity').value = '';
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
