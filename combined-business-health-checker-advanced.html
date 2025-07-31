@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Business Health Checker (Advanced)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px; /* Increased max-width for more inputs */
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        canvas {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #fefefe;
+            width: 100%; /* Make canvas responsive */
+            height: 350px; /* Increased height for radar chart */
+        }
+        .ratio-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            font-size: 0.875rem; /* text-sm */
+            display: inline-block; /* For proper spacing */
+            margin-left: 0.5rem;
+        }
+        .status-strong { background-color: #d1fae5; color: #065f46; } /* green-100, green-800 */
+        .status-good { background-color: #dbeafe; color: #1e40af; } /* blue-100, blue-800 */
+        .status-average { background-color: #fef3c7; color: #92400e; } /* amber-100, amber-800 */
+        .status-weak { background-color: #fee2e2; color: #991b1b; } /* red-100, red-800 */
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Combined Business Health Checker (Advanced)</h2>
+
+        <p class="text-gray-600 mb-6 text-center">Enter your business's financial and operational data to get a detailed health analysis based on key ratios.</p>
+
+        <!-- Financial Data Section -->
+        <div class="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Financial Data (Annual)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="currentRevenue" class="block text-gray-700 text-sm font-medium mb-2">Current Annual Revenue ($)</label>
+                    <input type="number" id="currentRevenue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1000000">
+                </div>
+                <div>
+                    <label for="previousRevenue" class="block text-gray-700 text-sm font-medium mb-2">Previous Annual Revenue ($)</label>
+                    <input type="number" id="previousRevenue" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 800000">
+                </div>
+                <div>
+                    <label for="costOfGoodsSold" class="block text-gray-700 text-sm font-medium mb-2">Cost of Goods Sold (COGS) ($)</label>
+                    <input type="number" id="costOfGoodsSold" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 400000">
+                </div>
+                <div>
+                    <label for="operatingExpenses" class="block text-gray-700 text-sm font-medium mb-2">Operating Expenses (OpEx) ($)</label>
+                    <input type="number" id="operatingExpenses" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 300000">
+                </div>
+                <div>
+                    <label for="netProfit" class="block text-gray-700 text-sm font-medium mb-2">Net Profit ($)</label>
+                    <input type="number" id="netProfit" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 200000">
+                </div>
+                <div>
+                    <label for="currentAssets" class="block text-gray-700 text-sm font-medium mb-2">Current Assets ($)</label>
+                    <input type="number" id="currentAssets" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 150000">
+                </div>
+                <div>
+                    <label for="currentLiabilities" class="block text-gray-700 text-sm font-2">Current Liabilities ($)</label>
+                    <input type="number" id="currentLiabilities" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 75000">
+                </div>
+                <div>
+                    <label for="totalAssets" class="block text-gray-700 text-sm font-medium mb-2">Total Assets ($)</label>
+                    <input type="number" id="totalAssets" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 500000">
+                </div>
+                <div>
+                    <label for="totalLiabilities" class="block text-gray-700 text-sm font-medium mb-2">Total Liabilities ($)</label>
+                    <input type="number" id="totalLiabilities" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 200000">
+                </div>
+                <div>
+                    <label for="shareholdersEquity" class="block text-gray-700 text-sm font-medium mb-2">Shareholders' Equity ($)</label>
+                    <input type="number" id="shareholdersEquity" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 300000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Data Section -->
+        <div class="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Customer Data (Annual)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="customersStart" class="block text-gray-700 text-sm font-medium mb-2">Customers at Start of Period</label>
+                    <input type="number" id="customersStart" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1000">
+                </div>
+                <div>
+                    <label for="customersEnd" class="block text-gray-700 text-sm font-medium mb-2">Customers at End of Period</label>
+                    <input type="number" id="customersEnd" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 1200">
+                </div>
+                <div>
+                    <label for="newCustomers" class="block text-gray-700 text-sm font-medium mb-2">New Customers Acquired During Period</label>
+                    <input type="number" id="newCustomers" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 300">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex space-x-4">
+            <button id="checkHealthBtn" class="flex-1 bg-gray-800 text-white py-3 rounded-md font-semibold hover:bg-gray-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Analyze Business Health
+            </button>
+            <button id="resetBtn" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-md font-semibold hover:bg-gray-300 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Reset
+            </button>
+        </div>
+
+        <div id="results" class="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-md hidden">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Detailed Business Health Report:</h3>
+
+            <div class="space-y-4 mb-6" id="ratioResultsContainer">
+                <!-- Ratio Results will be injected here -->
+            </div>
+
+            <h4 class="text-lg font-semibold text-gray-800 mb-2">Overall Business Health Assessment:</h4>
+            <p id="overallHealthSummary" class="text-gray-700 text-base mb-4"></p>
+
+            <canvas id="healthChart" class="mt-6"></canvas>
+
+            <p class="text-gray-500 text-sm mt-4">
+                <span class="font-bold text-red-600">Disclaimer:</span> This tool provides an analysis based on standard business ratios and general benchmarks. It is not a substitute for professional financial analysis, industry-specific expertise, or comprehensive business consultation. Benchmarks can vary significantly by industry and company size.
+            </p>
+        </div>
+
+        <div id="errorMessage" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden" role="alert">
+            Please ensure all required fields have valid non-negative numbers. Previous Revenue and Customers at Start must be greater than zero for growth/retention calculations.
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Input Elements
+            const currentRevenueInput = document.getElementById('currentRevenue');
+            const previousRevenueInput = document.getElementById('previousRevenue');
+            const costOfGoodsSoldInput = document.getElementById('costOfGoodsSold');
+            const operatingExpensesInput = document.getElementById('operatingExpenses');
+            const netProfitInput = document.getElementById('netProfit');
+            const currentAssetsInput = document.getElementById('currentAssets');
+            const currentLiabilitiesInput = document.getElementById('currentLiabilities');
+            const totalAssetsInput = document.getElementById('totalAssets');
+            const totalLiabilitiesInput = document.getElementById('totalLiabilities');
+            const shareholdersEquityInput = document.getElementById('shareholdersEquity');
+            const customersStartInput = document.getElementById('customersStart');
+            const customersEndInput = document.getElementById('customersEnd');
+            const newCustomersInput = document.getElementById('newCustomers');
+
+            // Button & Display Elements
+            const checkHealthBtn = document.getElementById('checkHealthBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const resultsDiv = document.getElementById('results');
+            const ratioResultsContainer = document.getElementById('ratioResultsContainer'); // Changed to get by ID
+            const overallHealthSummary = document.getElementById('overallHealthSummary');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const healthChartCanvas = document.getElementById('healthChart');
+            const ctx = healthChartCanvas.getContext('2d');
+
+            // Benchmarks for ratios (general guidelines, can be customized)
+            // Scores: 0=Weak, 1=Average, 2=Good, 3=Strong
+            const ratioBenchmarks = {
+                grossProfitMargin: {
+                    name: 'Gross Profit Margin',
+                    description: 'Indicates the percentage of revenue left after deducting the cost of goods sold. Higher is generally better.',
+                    strong: 0.50, // 50%
+                    good: 0.30,  // 30%
+                    average: 0.15, // 15%
+                    unit: '%',
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.50) return 3;
+                        if (value >= 0.30) return 2;
+                        if (value >= 0.15) return 1;
+                        return 0;
+                    }
+                },
+                netProfitMargin: {
+                    name: 'Net Profit Margin',
+                    description: 'Shows the percentage of revenue left after all expenses, including taxes, have been deducted. Higher is generally better.',
+                    strong: 0.15, // 15%
+                    good: 0.08,  // 8%
+                    average: 0.03, // 3%
+                    unit: '%',
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.15) return 3;
+                        if (value >= 0.08) return 2;
+                        if (value >= 0.03) return 1;
+                        return 0;
+                    }
+                },
+                currentRatio: {
+                    name: 'Current Ratio',
+                    description: 'Measures a company\'s ability to pay off its short-term liabilities with its short-term assets. A ratio of 1.5-2.0 is often considered healthy.',
+                    strong: 2.0,
+                    good: 1.5,
+                    average: 1.0,
+                    unit: 'x',
+                    scoreMap: (value) => {
+                        if (isNaN(value) || value === Infinity) return 0; // Infinity means liabilities are zero, which is good, but for ratio, it implies no debt
+                        if (value >= 2.0) return 3;
+                        if (value >= 1.5) return 2;
+                        if (value >= 1.0) return 1;
+                        return 0;
+                    }
+                },
+                debtToEquityRatio: {
+                    name: 'Debt-to-Equity Ratio',
+                    description: 'Indicates the proportion of equity and debt used to finance a company\'s assets. Lower is generally better, indicating less reliance on debt.',
+                    strong: 0.5, // 0.5x or less
+                    good: 1.0,   // 1.0x
+                    average: 2.0, // 2.0x
+                    unit: 'x',
+                    scoreMap: (value) => {
+                        if (isNaN(value) || value === Infinity) return 0; // Infinity means equity is zero, which is bad
+                        if (value <= 0.5) return 3;
+                        if (value <= 1.0) return 2;
+                        if (value <= 2.0) return 1;
+                        return 0;
+                    }
+                },
+                assetTurnover: {
+                    name: 'Asset Turnover',
+                    description: 'Measures how efficiently a company is using its assets to generate revenue. Higher is generally better.',
+                    strong: 2.0,
+                    good: 1.0,
+                    average: 0.5,
+                    unit: 'x',
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 2.0) return 3;
+                        if (value >= 1.0) return 2;
+                        if (value >= 0.5) return 1;
+                        return 0;
+                    }
+                },
+                revenueGrowthRate: {
+                    name: 'Revenue Growth Rate',
+                    description: 'Measures the percentage increase in revenue over a period. Positive growth is crucial for expansion.',
+                    strong: 0.20, // 20%
+                    good: 0.10,  // 10%
+                    average: 0.03, // 3%
+                    unit: '%',
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.20) return 3;
+                        if (value >= 0.10) return 2;
+                        if (value >= 0.03) return 1;
+                        return 0;
+                    }
+                },
+                customerRetentionRate: {
+                    name: 'Customer Retention Rate',
+                    description: 'The percentage of customers a business retains over a given period. Higher is generally better, indicating customer loyalty.',
+                    strong: 0.90, // 90%
+                    good: 0.75,  // 75%
+                    average: 0.60, // 60%
+                    unit: '%',
+                    scoreMap: (value) => {
+                        if (isNaN(value)) return 0;
+                        if (value >= 0.90) return 3;
+                        if (value >= 0.75) return 2;
+                        if (value >= 0.60) return 1;
+                        return 0;
+                    }
+                }
+            };
+
+            // Function to format numbers (currency, percentage, or plain)
+            const formatNumber = (value, type) => {
+                if (isNaN(value) || value === Infinity) return 'N/A';
+                if (type === '%') {
+                    return `${(value * 100).toFixed(2)}%`;
+                } else if (type === '$') {
+                    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                } else {
+                    return value.toFixed(2);
+                }
+            };
+
+            // Function to get status text and class
+            const getStatusTextAndClass = (score) => {
+                if (score === 3) return { text: 'Strong', class: 'status-strong' };
+                if (score === 2) return { text: 'Good', class: 'status-good' };
+                if (score === 1) return { text: 'Average', class: 'status-average' };
+                return { text: 'Weak', class: 'status-weak' };
+            };
+
+            // Function to draw the radar chart
+            const drawRadarChart = (scores) => {
+                ctx.clearRect(0, 0, healthChartCanvas.width, healthChartCanvas.height);
+
+                const containerWidth = healthChartCanvas.offsetWidth;
+                healthChartCanvas.width = containerWidth;
+                healthChartCanvas.height = 350;
+
+                const centerX = healthChartCanvas.width / 2;
+                const centerY = healthChartCanvas.height / 2;
+                const radius = Math.min(centerX, centerY) * 0.7; // Max radius for the chart
+                const numAxes = scores.length;
+                const angleIncrement = (2 * Math.PI) / numAxes;
+                const maxScore = 3; // Max score for a single metric
+
+                // Draw radar grid (concentric circles)
+                ctx.strokeStyle = '#e5e7eb'; // Light gray
+                ctx.lineWidth = 1;
+                for (let i = 1; i <= maxScore; i++) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, (radius / maxScore) * i, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+
+                // Draw axes and labels
+                ctx.fillStyle = '#4b5563';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const labels = Object.values(ratioBenchmarks).map(b => b.name);
+                labels.forEach((label, i) => {
+                    const angle = i * angleIncrement - Math.PI / 2; // Start from top
+                    const x = centerX + radius * Math.cos(angle);
+                    const y = centerY + radius * Math.sin(angle);
+
+                    // Adjust label position to avoid overlap and be outside the chart
+                    const labelOffset = 20;
+                    let labelX = centerX + (radius + labelOffset) * Math.cos(angle);
+                    let labelY = centerY + (radius + labelOffset) * Math.sin(angle);
+
+                    // Adjust text alignment for readability
+                    if (Math.abs(Math.cos(angle)) < 0.001) { // Vertical axis
+                        ctx.textAlign = 'center';
+                        labelY += (Math.sin(angle) > 0 ? 1 : -1) * 5;
+                    } else if (Math.cos(angle) > 0) { // Right side
+                        ctx.textAlign = 'left';
+                        labelX += 5;
+                    } else { // Left side
+                        ctx.textAlign = 'right';
+                        labelX -= 5;
+                    }
+
+                    ctx.fillText(label, labelX, labelY);
+
+                    // Draw axis line
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                });
+
+                // Draw the performance polygon
+                ctx.beginPath();
+                ctx.strokeStyle = '#3b82f6'; // Blue
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.2)'; // Light blue fill
+                ctx.lineWidth = 2;
+
+                scores.forEach((score, i) => {
+                    const angle = i * angleIncrement - Math.PI / 2;
+                    const pointRadius = (radius / maxScore) * score;
+                    const x = centerX + pointRadius * Math.cos(angle);
+                    const y = centerY + pointRadius * Math.sin(angle);
+
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.closePath();
+                ctx.stroke();
+                ctx.fill();
+
+                // Draw points for each score
+                ctx.fillStyle = '#1e40af'; // Darker blue
+                scores.forEach((score, i) => {
+                    const angle = i * angleIncrement - Math.PI / 2;
+                    const pointRadius = (radius / maxScore) * score;
+                    const x = centerX + pointRadius * Math.cos(angle);
+                    const y = centerY + pointRadius * Math.sin(angle);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+            };
+
+
+            const analyzeHealth = () => {
+                // Get input values
+                const currentRevenue = parseFloat(currentRevenueInput.value || '0');
+                const previousRevenue = parseFloat(previousRevenueInput.value || '0');
+                const costOfGoodsSold = parseFloat(costOfGoodsSoldInput.value || '0');
+                const operatingExpenses = parseFloat(operatingExpensesInput.value || '0');
+                const netProfit = parseFloat(netProfitInput.value || '0');
+                const currentAssets = parseFloat(currentAssetsInput.value || '0');
+                const currentLiabilities = parseFloat(currentLiabilitiesInput.value || '0');
+                const totalAssets = parseFloat(totalAssetsInput.value || '0');
+                const totalLiabilities = parseFloat(totalLiabilitiesInput.value || '0');
+                const shareholdersEquity = parseFloat(shareholdersEquityInput.value || '0');
+                const customersStart = parseFloat(customersStartInput.value || '0');
+                const customersEnd = parseFloat(customersEndInput.value || '0');
+                const newCustomers = parseFloat(newCustomersInput.value || '0');
+
+                // Basic validation
+                let isValid = true;
+                let errorMessage = '';
+
+                // Check for non-negative values where applicable
+                const nonNegativeInputs = [
+                    currentRevenue, previousRevenue, costOfGoodsSold, operatingExpenses, netProfit,
+                    currentAssets, currentLiabilities, totalAssets, totalLiabilities, shareholdersEquity,
+                    customersStart, customersEnd, newCustomers
+                ];
+                if (nonNegativeInputs.some(val => isNaN(val) || val < 0)) {
+                    isValid = false;
+                    errorMessage = "Please ensure all fields have valid non-negative numbers.";
+                }
+
+                // Specific validations for division by zero or logical consistency
+                if (previousRevenue === 0 && (currentRevenue > 0 || currentRevenue < 0)) {
+                    isValid = false;
+                    errorMessage = "Previous Revenue must be greater than zero to calculate Revenue Growth Rate.";
+                }
+                if (currentRevenue === 0 && (costOfGoodsSold > 0 || netProfit > 0)) {
+                     isValid = false;
+                     errorMessage = "Current Revenue must be greater than zero for profitability ratio calculations if costs/profits are entered.";
+                }
+                if (currentLiabilities === 0 && currentAssets > 0) {
+                    isValid = false;
+                    errorMessage = "Current Liabilities must be greater than zero to calculate Current Ratio if Current Assets are entered.";
+                }
+                if (shareholdersEquity === 0 && totalLiabilities > 0) {
+                    isValid = false;
+                    errorMessage = "Shareholders' Equity must be greater than zero to calculate Debt-to-Equity Ratio if Total Liabilities are entered.";
+                }
+                if (totalAssets === 0 && currentRevenue > 0) {
+                    isValid = false;
+                    errorMessage = "Total Assets must be greater than zero to calculate Asset Turnover if Current Revenue is entered.";
+                }
+                if (customersStart === 0 && (customersEnd > 0 || newCustomers > 0)) {
+                    isValid = false;
+                    errorMessage = "Customers at Start must be greater than zero to calculate Customer Retention Rate.";
+                }
+
+                if (!isValid) {
+                    errorMessageDiv.textContent = errorMessage;
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    ctx.clearRect(0, 0, healthChartCanvas.width, healthChartCanvas.height);
+                    return;
+                } else {
+                    errorMessageDiv.classList.add('hidden');
+                }
+
+                // Calculate Ratios
+                const calculatedRatios = {};
+
+                // Gross Profit Margin
+                calculatedRatios.grossProfitMargin = currentRevenue > 0 ? (currentRevenue - costOfGoodsSold) / currentRevenue : 0;
+                // Net Profit Margin
+                calculatedRatios.netProfitMargin = currentRevenue > 0 ? netProfit / currentRevenue : 0;
+                // Current Ratio
+                calculatedRatios.currentRatio = currentLiabilities > 0 ? currentAssets / currentLiabilities : Infinity; // Handle division by zero
+                // Debt-to-Equity Ratio
+                calculatedRatios.debtToEquityRatio = shareholdersEquity > 0 ? totalLiabilities / shareholdersEquity : Infinity;
+                // Asset Turnover
+                calculatedRatios.assetTurnover = totalAssets > 0 ? currentRevenue / totalAssets : 0;
+                // Revenue Growth Rate
+                calculatedRatios.revenueGrowthRate = previousRevenue > 0 ? (currentRevenue - previousRevenue) / previousRevenue : 0;
+                // Customer Retention Rate
+                calculatedRatios.customerRetentionRate = customersStart > 0 ? ((customersEnd - newCustomers) / customersStart) : 0;
+
+
+                // Prepare results for display and chart
+                let totalScore = 0;
+                const ratioScoresForChart = [];
+                ratioResultsContainer.innerHTML = ''; // Clear previous results
+
+                Object.keys(ratioBenchmarks).forEach(key => {
+                    const benchmark = ratioBenchmarks[key];
+                    const value = calculatedRatios[key];
+                    const score = benchmark.scoreMap(value);
+                    const { text, class: statusClass } = getStatusTextAndClass(score);
+
+                    totalScore += score;
+                    ratioScoresForChart.push(score);
+
+                    const resultHtml = `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <div class="mb-1 sm:mb-0">
+                                <p class="font-semibold text-gray-700">${benchmark.name}: <span class="font-normal text-gray-900">${formatNumber(value, benchmark.unit)}</span></p>
+                                <p class="text-gray-500 text-xs">${benchmark.description}</p>
+                            </div>
+                            <span class="ratio-status ${statusClass}">${text}</span>
+                        </div>
+                    `;
+                    ratioResultsContainer.innerHTML += resultHtml;
+                });
+
+                // Overall Health Summary
+                const maxPossibleScore = Object.keys(ratioBenchmarks).length * 3; // Number of ratios * max score per ratio
+                const overallPercentage = (totalScore / maxPossibleScore) * 100;
+
+                let overallSummaryText = '';
+                if (overallPercentage >= 85) {
+                    overallSummaryText = "Your business health is **Excellent**! You're demonstrating strong performance across most key financial and operational areas.";
+                } else if (overallPercentage >= 70) {
+                    overallSummaryText = "Your business health is **Good**. You have solid performance, with a few areas that could be optimized for even better results.";
+                } else if (overallPercentage >= 50) {
+                    overallSummaryText = "Your business health is **Average**. There are notable strengths, but also significant areas that could benefit from strategic improvement.";
+                } else {
+                    overallSummaryText = "Your business health **Needs Significant Improvement**. Several key financial and operational areas require immediate attention to ensure long-term sustainability and growth.";
+                }
+                overallHealthSummary.innerHTML = overallSummaryText;
+
+                resultsDiv.classList.remove('hidden');
+
+                // Draw the radar chart
+                drawRadarChart(ratioScoresForChart);
+            };
+
+            checkHealthBtn.addEventListener('click', analyzeHealth);
+
+            resetBtn.addEventListener('click', () => {
+                // Clear all input fields
+                currentRevenueInput.value = '';
+                previousRevenueInput.value = '';
+                costOfGoodsSoldInput.value = '';
+                operatingExpensesInput.value = '';
+                netProfitInput.value = '';
+                currentAssetsInput.value = '';
+                currentLiabilitiesInput.value = '';
+                totalAssetsInput.value = '';
+                totalLiabilitiesInput.value = '';
+                shareholdersEquityInput.value = '';
+                customersStartInput.value = '';
+                customersEndInput.value = '';
+                newCustomersInput.value = '';
+
+                // Clear results and error messages
+                ratioResultsContainer.innerHTML = '';
+                overallHealthSummary.textContent = '';
+                resultsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                ctx.clearRect(0, 0, healthChartCanvas.width, healthChartCanvas.height); // Clear chart
+            });
+
+            // Recalculate and redraw chart on window resize for responsiveness
+            window.addEventListener('resize', () => {
+                if (!resultsDiv.classList.contains('hidden')) {
+                    analyzeHealth(); // Recalculate and redraw if results are visible
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
