@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        canvas {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #fefefe;
+            width: 100%; /* Make canvas responsive */
+            height: 300px; /* Fixed height for the chart */
+        }
+        .expense-category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        /* Updated expense-item styling for responsiveness */
+        .expense-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+        }
+        .expense-item input.expense-name {
+            flex: 1; /* Takes available space */
+            min-width: 120px; /* Ensure name input is readable */
+        }
+        .expense-item input.expense-amount {
+            width: 100%; /* Full width on small screens */
+            max-width: 100px; /* Max width for amount when wrapped */
+            flex-shrink: 0; /* Prevent shrinking */
+            /* Tailwind's sm:w-24 will override w-full on larger screens */
+        }
+        .remove-expense-btn {
+            flex-shrink: 0;
+            padding: 0.5rem;
+            background-color: #fecaca; /* Red-100 */
+            color: #dc2626; /* Red-600 */
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        .remove-expense-btn:hover {
+            background-color: #fca5a5; /* Red-200 */
+        }
+
+        /* Specific override for sm breakpoint to keep them in one row */
+        @media (min-width: 640px) { /* sm breakpoint */
+            .expense-item {
+                flex-wrap: nowrap;
+            }
+            .expense-item input.expense-amount {
+                width: 96px; /* Equivalent to w-24 */
+                max-width: 96px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Budget Planner</h2>
+
+        <div class="mb-5">
+            <label for="monthlyIncome" class="block text-gray-700 text-sm font-medium mb-2">Monthly Income ($)</label>
+            <input type="number" id="monthlyIncome" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="e.g., 3000">
+        </div>
+
+        <h3 class="text-xl font-semibold text-gray-800 mb-4 mt-8">Monthly Expenses</h3>
+
+        <div id="expenseCategories" class="space-y-6">
+            <!-- Expense Category: Housing -->
+            <div class="expense-category" data-category="Housing">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Housing</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Rent/Mortgage">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Category: Transportation -->
+            <div class="expense-category" data-category="Transportation">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Transportation</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Fuel/Public Transport">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Category: Food -->
+            <div class="expense-category" data-category="Food">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Food</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Groceries/Dining Out">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Category: Utilities -->
+            <div class="expense-category" data-category="Utilities">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Utilities</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Electricity/Water/Internet">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Category: Personal Care -->
+            <div class="expense-category" data-category="Personal Care">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Personal Care</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Toiletries/Haircuts">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Category: Entertainment -->
+            <div class="expense-category" data-category="Entertainment">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Entertainment</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Movies/Hobbies/Outings">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Category: Savings -->
+            <div class="expense-category" data-category="Savings">
+                <div class="expense-category-header">
+                    <h4 class="font-medium text-gray-700">Savings & Investments</h4>
+                    <button type="button" class="add-expense-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition duration-200">Add Item</button>
+                </div>
+                <div class="expense-items-container space-y-2">
+                    <div class="expense-item">
+                        <input type="text" class="expense-name px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Emergency Fund/Investments">
+                        <input type="number" class="expense-amount px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount">
+                        <button type="button" class="remove-expense-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="flex space-x-4 mt-8">
+            <button id="calculateBtn" class="flex-1 bg-gray-800 text-white py-3 rounded-md font-semibold hover:bg-gray-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Calculate Budget
+            </button>
+            <button id="resetBtn" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-md font-semibold hover:bg-gray-300 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Reset
+            </button>
+        </div>
+
+        <div id="results" class="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-md hidden">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Your Budget Summary:</h3>
+            <p class="text-gray-700 mb-2">Total Monthly Income: <span id="displayTotalIncome" class="font-bold text-gray-900"></span></p>
+            <p class="text-gray-700 mb-2">Total Monthly Expenses: <span id="displayTotalExpenses" class="font-bold text-gray-900"></span></p>
+            <p class="text-gray-700 text-lg font-bold mb-4">Net Balance: <span id="displayNetBalance" class=""></span></p>
+
+            <canvas id="budgetChart" class="mt-6"></canvas>
+
+            <p class="text-gray-500 text-sm mt-4">
+                <span class="font-bold text-red-600">Disclaimer:</span> This budget planner is a tool for estimation and planning. Actual income and expenses may vary. It's recommended to regularly review and adjust your budget based on your financial habits.
+            </p>
+        </div>
+
+        <div id="errorMessage" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md hidden" role="alert">
+            Please enter a valid non-negative number for Monthly Income. All expense amounts must be valid non-negative numbers.
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const monthlyIncomeInput = document.getElementById('monthlyIncome');
+            const expenseCategoriesContainer = document.getElementById('expenseCategories');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const resultsDiv = document.getElementById('results');
+            const displayTotalIncome = document.getElementById('displayTotalIncome');
+            const displayTotalExpenses = document.getElementById('displayTotalExpenses');
+            const displayNetBalance = document.getElementById('displayNetBalance');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const budgetChartCanvas = document.getElementById('budgetChart');
+            const ctx = budgetChartCanvas.getContext('2d');
+
+            // Colors for the pie chart slices
+            const chartColors = [
+                '#4CAF50', // Green (Housing)
+                '#2196F3', // Blue (Transportation)
+                '#FFC107', // Amber (Food)
+                '#9C27B0', // Purple (Utilities)
+                '#FF5722', // Deep Orange (Personal Care)
+                '#00BCD4', // Cyan (Entertainment)
+                '#8BC34A', // Light Green (Savings)
+                '#F4436',  // Red (Other) - fallback
+                '#607D8B', // Blue Grey (Other)
+                '#795548'  // Brown (Other)
+            ];
+
+            // Function to format currency
+            const formatCurrency = (amount) => {
+                return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            };
+
+            // Function to add an expense item row
+            const addExpenseItem = (categoryContainer, name = '', amount = '') => {
+                const expenseItemDiv = document.createElement('div');
+                // Added sm:flex-nowrap to prevent wrapping on larger screens
+                expenseItemDiv.className = 'expense-item flex flex-wrap sm:flex-nowrap items-center gap-3 mb-0.5';
+                expenseItemDiv.innerHTML = `
+                    <input type="text" class="expense-name flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Item Name" value="${name}">
+                    <input type="number" class="expense-amount w-full sm:w-24 px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="Amount" value="${amount}">
+                    <button type="button" class="remove-expense-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.927a2.25 2.25 0 0 1-2.244-2.077L4.747 5.94a2.25 2.25 0 0 1 2.244-2.077h.364l.006-.057a3 3 0 0 1 3.007-2.75h2.086c1.66 0 3.007 1.35 3.007 3.007V6.75H21.41a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1 0-1.5H5.43ZM12 18.75a.75.75 0 0 0 .75-.75v-6.75a.75.75 0 0 0-1.5 0v6.75a.75.75 0 0 0 .75.75Z" />
+                        </svg>
+                    </button>
+                `;
+                categoryContainer.querySelector('.expense-items-container').appendChild(expenseItemDiv);
+                expenseItemDiv.querySelector('.remove-expense-btn').addEventListener('click', () => {
+                    expenseItemDiv.remove();
+                });
+            };
+
+            // Attach event listeners to initial "Add Item" buttons
+            document.querySelectorAll('.add-expense-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const categoryContainer = event.target.closest('.expense-category');
+                    addExpenseItem(categoryContainer);
+                });
+            });
+
+            // Attach event listeners to initial "Remove" buttons
+            document.querySelectorAll('.remove-expense-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    event.target.closest('.expense-item').remove();
+                });
+            });
+
+
+            // Function to draw the pie chart for expense breakdown
+            const drawBudgetChart = (expenseData) => {
+                ctx.clearRect(0, 0, budgetChartCanvas.width, budgetChartCanvas.height);
+
+                const containerWidth = budgetChartCanvas.offsetWidth;
+                budgetChartCanvas.width = containerWidth;
+                budgetChartCanvas.height = 300; // Fixed height
+
+                const isMobileView = budgetChartCanvas.width < 480;
+
+                let centerX, centerY, radius;
+                let legendX, legendY;
+
+                if (isMobileView) {
+                    centerX = budgetChartCanvas.width / 2;
+                    centerY = budgetChartCanvas.height / 2 - 40; // Shift chart up for legend below
+                    radius = Math.min(centerX, centerY) * 0.8;
+                    legendX = 20;
+                    legendY = budgetChartCanvas.height - (expenseData.length * 20) - 10; // Adjust based on number of items
+                } else {
+                    centerX = budgetChartCanvas.width * 0.35; // Shift center to the left
+                    centerY = budgetChartCanvas.height / 2;
+                    radius = Math.min(centerX, centerY) * 0.8;
+                    legendX = centerX + radius + 40;
+                    legendY = centerY - (expenseData.length * 10); // Adjust based on number of items
+                }
+
+                const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
+
+                if (totalExpenses === 0) {
+                    ctx.fillStyle = '#ccc';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = '#666';
+                    ctx.textAlign = 'center';
+                    ctx.font = '14px Inter';
+                    ctx.fillText('No Expenses Data', centerX, centerY);
+                    return;
+                }
+
+                let startAngle = 0;
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'left';
+
+                expenseData.forEach((item, index) => {
+                    const sliceAngle = (item.amount / totalExpenses) * 2 * Math.PI;
+                    const color = chartColors[index % chartColors.length];
+
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Draw legend item
+                    const currentLegendY = legendY + (index * 20);
+                    ctx.fillRect(legendX, currentLegendY, 15, 15);
+                    ctx.fillStyle = '#374151';
+                    ctx.fillText(`${item.category}: ${formatCurrency(item.amount)}`, legendX + 20, currentLegendY + 12);
+
+                    startAngle += sliceAngle;
+                });
+            };
+
+            const calculateBudget = () => {
+                const monthlyIncome = parseFloat(monthlyIncomeInput.value);
+
+                if (isNaN(monthlyIncome) || monthlyIncome < 0) {
+                    errorMessageDiv.textContent = "Please enter a valid non-negative number for Monthly Income.";
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    ctx.clearRect(0, 0, budgetChartCanvas.width, budgetChartCanvas.height);
+                    return;
+                }
+
+                let totalExpenses = 0;
+                const expenseDataForChart = []; // To store data for the pie chart
+
+                let isValidExpenses = true;
+                document.querySelectorAll('.expense-category').forEach(categoryDiv => {
+                    const categoryName = categoryDiv.dataset.category;
+                    let categoryTotal = 0;
+                    categoryDiv.querySelectorAll('.expense-item').forEach(itemDiv => {
+                        // Treat empty amount as 0
+                        const expenseAmount = parseFloat(itemDiv.querySelector('.expense-amount').value || '0');
+
+                        if (isNaN(expenseAmount) || expenseAmount < 0) {
+                            isValidExpenses = false;
+                            return;
+                        }
+                        categoryTotal += expenseAmount;
+                    });
+                    if (!isValidExpenses) return; // Stop if any invalid expense found
+
+                    totalExpenses += categoryTotal;
+                    if (categoryTotal > 0) { // Only add categories with expenses to the chart data
+                        expenseDataForChart.push({ category: categoryName, amount: categoryTotal });
+                    }
+                });
+
+                if (!isValidExpenses) {
+                    errorMessageDiv.textContent = "All expense amounts must be valid non-negative numbers.";
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    ctx.clearRect(0, 0, budgetChartCanvas.width, budgetChartCanvas.height);
+                    return;
+                }
+
+                errorMessageDiv.classList.add('hidden');
+
+                const netBalance = monthlyIncome - totalExpenses;
+
+                // Display results
+                displayTotalIncome.textContent = formatCurrency(monthlyIncome);
+                displayTotalExpenses.textContent = formatCurrency(totalExpenses);
+                displayNetBalance.textContent = formatCurrency(netBalance);
+
+                if (netBalance >= 0) {
+                    displayNetBalance.classList.remove('text-red-600');
+                    displayNetBalance.classList.add('text-green-600');
+                } else {
+                    displayNetBalance.classList.remove('text-green-600');
+                    displayNetBalance.classList.add('text-red-600');
+                }
+
+                resultsDiv.classList.remove('hidden');
+
+                // Draw the chart
+                drawBudgetChart(expenseDataForChart);
+            };
+
+            calculateBtn.addEventListener('click', calculateBudget);
+
+            resetBtn.addEventListener('click', () => {
+                monthlyIncomeInput.value = '';
+                document.querySelectorAll('.expense-category').forEach(categoryDiv => {
+                    const container = categoryDiv.querySelector('.expense-items-container');
+                    container.innerHTML = ''; // Clear existing items
+                    // Add back default item for each category
+                    const categoryName = categoryDiv.dataset.category;
+                    let placeholderText = '';
+                    if (categoryName === 'Housing') placeholderText = 'Rent/Mortgage';
+                    else if (categoryName === 'Transportation') placeholderText = 'Fuel/Public Transport';
+                    else if (categoryName === 'Food') placeholderText = 'Groceries/Dining Out';
+                    else if (categoryName === 'Utilities') placeholderText = 'Electricity/Water/Internet';
+                    else if (categoryName === 'Personal Care') placeholderText = 'Toiletries/Haircuts';
+                    else if (categoryName === 'Entertainment') placeholderText = 'Movies/Hobbies/Outings';
+                    else if (categoryName === 'Savings') placeholderText = 'Emergency Fund/Investments';
+
+                    addExpenseItem(categoryDiv, placeholderText, '');
+                });
+                resultsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                ctx.clearRect(0, 0, budgetChartCanvas.width, budgetChartCanvas.height); // Clear chart
+            });
+
+            // Recalculate and redraw chart on window resize for responsiveness
+            window.addEventListener('resize', () => {
+                if (!resultsDiv.classList.contains('hidden')) {
+                    calculateBudget(); // Recalculate and redraw if results are visible
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
