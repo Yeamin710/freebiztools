@@ -689,6 +689,9 @@
             try {
                 showLoading();
 
+                // Log the raw __firebase_config for debugging
+                console.log("Raw __firebase_config:", typeof __firebase_config !== 'undefined' ? __firebase_config : "undefined or not available");
+
                 // Check if firebaseConfig is properly set
                 if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
                     displayMessage("Firebase configuration is missing or incomplete. Please ensure your Firebase project is correctly linked to this Canvas.", "error");
