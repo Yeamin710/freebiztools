@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - FreeBizTools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        header nav a {
+            color: #4b5563;
+            font-weight: 500;
+            margin-left: 2rem;
+            transition: color 0.2s;
+        }
+        header nav a:hover {
+            color: #1f2937;
+        }
+        footer {
+            background-color: #ffffff;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem 2rem;
+            margin-top: auto; /* Pushes footer to the bottom */
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="text-xl font-semibold text-gray-800">FreeBizTools</div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="index.html#tools-section">Tools</a>
+            <a href="crm-lite.html" target="_blank">CRM Lite</a>
+            <a href="blog.html">Blog</a>
+            <a href="about.html">About</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+
+    <!-- Main Content for Blog Page -->
+    <main class="flex-grow container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Our Latest Articles - FreeBizTools Blog</h1>
+        <p class="text-gray-600 mb-8 text-center">Stay updated with insights and tips for your business.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Example Blog Post Card 1 -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Understanding CLV: A Key Metric</h3>
+                <p class="text-gray-600 text-sm mb-4">Learn why Customer Lifetime Value is crucial for sustainable business growth and how to leverage it.</p>
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Read More &rarr;</a>
+            </div>
+
+            <!-- Example Blog Post Card 2 -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">5 Tips for Effective Budget Planning</h3>
+                <p class="text-gray-600 text-sm mb-4">Master your finances with these practical tips for creating and sticking to a budget.</p>
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Read More &rarr;</a>
+            </div>
+
+            <!-- Example Blog Post Card 3 -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Decoding Business Health Ratios</h3>
+                <p class="text-gray-600 text-sm mb-4">A simple guide to understanding key financial ratios that indicate your business's health.</p>
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Read More &rarr;</a>
+            </div>
+
+            <!-- Add more blog post cards here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 FreeBizTools. All rights reserved.
+    </footer>
+
+</body>
+</html>
