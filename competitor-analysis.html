@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitor Analysis Tool</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font import for a cleaner look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styling for the table to handle responsiveness */
+        .table-responsive-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 sm:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Section -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-gray-700 to-gray-900">
+                Competitor Analysis
+            </h1>
+            <p class="text-gray-600 text-lg">
+                Compare your main competitors side-by-side to identify strengths and weaknesses.
+            </p>
+            <!-- User ID display for Firestore integration -->
+            <div id="user-info" class="text-xs text-gray-400 mt-2">
+                <span id="loading-auth" class="animate-pulse">Authenticating...</span>
+                <span id="user-id" class="hidden"></span>
+            </div>
+        </header>
+
+        <!-- Competitor Input Form -->
+        <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-md mb-12 border border-gray-200">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-6 text-center text-gray-900">
+                Add New Competitor
+            </h2>
+            <form id="competitor-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Input fields for competitor data -->
+                <div class="col-span-1">
+                    <label for="name" class="block text-sm font-medium mb-1 text-gray-700">Competitor Name</label>
+                    <input type="text" id="name" name="name" placeholder="e.g., Acme Corp" required
+                            class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="col-span-1">
+                    <label for="pricing" class="block text-sm font-medium mb-1 text-gray-700">Pricing</label>
+                    <input type="text" id="pricing" name="pricing" placeholder="e.g., $10/mo, $99/year"
+                            class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="col-span-1">
+                    <label for="features" class="block text-sm font-medium mb-1 text-gray-700">Product Features</label>
+                    <input type="text" id="features" name="features" placeholder="e.g., AI automation, custom reports"
+                            class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="col-span-1">
+                    <label for="marketing" class="block text-sm font-medium mb-1 text-gray-700">Marketing Channels</label>
+                    <input type="text" id="marketing" name="marketing" placeholder="e.g., Social media, SEO"
+                            class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="col-span-1">
+                    <label for="reviews" class="block text-sm font-medium mb-1 text-gray-700">Customer Reviews</label>
+                    <input type="text" id="reviews" name="reviews" placeholder="e.g., 4.5/5 stars on G2"
+                            class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+
+                <!-- Submit and Cancel buttons -->
+                <div class="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center mt-4 space-x-4">
+                    <button type="submit" id="add-edit-btn"
+                             class="flex items-center justify-center gap-2 px-6 py-3 text-lg font-semibold text-white bg-gray-800 rounded-full shadow-lg hover:bg-gray-900 transition-transform transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Add Competitor
+                    </button>
+                    <button type="button" id="cancel-btn"
+                             class="hidden flex items-center justify-center gap-2 px-6 py-3 text-lg font-semibold text-gray-700 bg-gray-200 rounded-full shadow-lg hover:bg-gray-300 transition-transform transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Competitor Comparison Display -->
+        <section id="comparison-section" class="hidden">
+            <h2 class="text-3xl font-semibold mb-6 text-center text-gray-900">
+                Competitor Comparison
+            </h2>
+            <!-- Container for the responsive table. The overflow-x-auto class makes it scrollable on small screens. -->
+            <div class="table-responsive-container">
+                <table class="min-w-full bg-white rounded-2xl shadow-md border border-gray-200 divide-y divide-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">Competitor Name</th>
+                            <th class="py-3 px-6 text-left">Pricing</th>
+                            <th class="py-3 px-6 text-left">Product Features</th>
+                            <th class="py-3 px-6 text-left">Marketing Channels</th>
+                            <th class="py-3 px-6 text-left">Customer Reviews</th>
+                            <th class="py-3 px-6 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="competitor-list" class="text-gray-700 text-sm font-light divide-y divide-gray-200">
+                        <!-- Competitor rows will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Firebase Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Use an IIFE (Immediately Invoked Function Expression) to avoid polluting the global scope
+        (() => {
+            // Get references to DOM elements
+            const form = document.getElementById('competitor-form');
+            const competitorListContainer = document.getElementById('competitor-list');
+            const comparisonSection = document.getElementById('comparison-section');
+            const addEditBtn = document.getElementById('add-edit-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const loadingAuthSpan = document.getElementById('loading-auth');
+            const userIdSpan = document.getElementById('user-id');
+            
+            // Firebase setup using provided global variables
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const firebaseConfig = JSON.parse(__firebase_config);
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+            // Initialize Firebase services
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+
+            let competitors = [];
+            let editingId = null;
+            let userId = null;
+
+            // Function to render all competitor rows
+            const renderCompetitors = () => {
+                // Clear existing rows
+                competitorListContainer.innerHTML = '';
+                
+                // Hide or show the comparison section based on if there are competitors
+                if (competitors.length > 0) {
+                    comparisonSection.classList.remove('hidden');
+                } else {
+                    comparisonSection.classList.add('hidden');
+                }
+
+                // Loop through the competitors array and create a row for each
+                competitors.forEach(comp => {
+                    // Create the main row element
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-gray-50 transition-colors";
+
+                    // Create the actions cell with buttons
+                    const actionsCell = document.createElement('td');
+                    actionsCell.className = "py-3 px-6 text-left whitespace-nowrap";
+                    
+                    // Edit button
+                    const editBtn = document.createElement('button');
+                    editBtn.className = "text-gray-500 hover:text-blue-500 transition-colors mr-2";
+                    editBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
+                    editBtn.addEventListener('click', () => {
+                        startEdit(comp.id);
+                    });
+
+                    // Delete button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = "text-gray-500 hover:text-red-500 transition-colors";
+                    deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
+                    deleteBtn.addEventListener('click', async () => {
+                        await removeCompetitor(comp.id);
+                    });
+                    
+                    // Append buttons to the actions cell
+                    actionsCell.appendChild(editBtn);
+                    actionsCell.appendChild(deleteBtn);
+
+                    // Populate the row with cells for each data point
+                    row.innerHTML = `
+                        <td class="py-3 px-6 text-left font-medium whitespace-nowrap">${comp.name}</td>
+                        <td class="py-3 px-6 text-left">${comp.pricing || 'N/A'}</td>
+                        <td class="py-3 px-6 text-left">${comp.features || 'N/A'}</td>
+                        <td class="py-3 px-6 text-left">${comp.marketing || 'N/A'}</td>
+                        <td class="py-3 px-6 text-left">${comp.reviews || 'N/A'}</td>
+                    `;
+                    
+                    // Append the actions cell and the row to the container
+                    row.appendChild(actionsCell);
+                    competitorListContainer.appendChild(row);
+                });
+            };
+
+            // Function to handle form submission (Add or Edit)
+            const handleFormSubmit = async (e) => {
+                e.preventDefault(); // Prevent page reload
+                
+                // Get form data
+                const competitorData = {
+                    name: form.name.value,
+                    pricing: form.pricing.value,
+                    features: form.features.value,
+                    marketing: form.marketing.value,
+                    reviews: form.reviews.value
+                };
+
+                try {
+                    // If we are currently editing
+                    if (editingId !== null) {
+                        const competitorRef = doc(db, `artifacts/${appId}/users/${userId}/competitors`, editingId);
+                        await setDoc(competitorRef, competitorData, { merge: true });
+                        console.log("Competitor updated successfully!");
+                    } else {
+                        // Otherwise, add a new competitor
+                        await addDoc(collection(db, `artifacts/${appId}/users/${userId}/competitors`), competitorData);
+                        console.log("New competitor added successfully!");
+                    }
+                } catch (error) {
+                    console.error("Error writing document: ", error);
+                }
+
+                // Reset editing state and form
+                editingId = null;
+                form.reset();
+                addEditBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Competitor';
+                cancelBtn.classList.add('hidden');
+            };
+
+            // Function to start the edit process
+            const startEdit = (id) => {
+                const competitor = competitors.find(comp => comp.id === id);
+                if (competitor) {
+                    editingId = id;
+                    form.name.value = competitor.name;
+                    form.pricing.value = competitor.pricing;
+                    form.features.value = competitor.features;
+                    form.marketing.value = competitor.marketing;
+                    form.reviews.value = competitor.reviews;
+                    
+                    // Change button text and show cancel button
+                    addEditBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Changes';
+                    cancelBtn.classList.remove('hidden');
+                }
+            };
+            
+            // Function to cancel the edit and reset the form
+            const cancelEdit = () => {
+                editingId = null;
+                form.reset();
+                addEditBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Competitor';
+                cancelBtn.classList.add('hidden');
+            };
+
+            // Function to remove a competitor by its ID
+            const removeCompetitor = async (id) => {
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/competitors`, id));
+                    console.log("Competitor removed successfully!");
+                } catch (error) {
+                    console.error("Error removing document: ", error);
+                }
+            };
+            
+            // Asynchronous function to initialize Firebase and Firestore listener
+            const initFirebaseAndListener = async () => {
+                try {
+                    // Sign in the user
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Set up Firestore listener only after authentication is complete
+                    onAuthStateChanged(auth, user => {
+                        if (user) {
+                            userId = user.uid;
+                            loadingAuthSpan.classList.add('hidden');
+                            userIdSpan.textContent = `User ID: ${userId}`;
+                            userIdSpan.classList.remove('hidden');
+
+                            // Set up the real-time listener for the user's competitor data
+                            const competitorsColRef = collection(db, `artifacts/${appId}/users/${userId}/competitors`);
+                            onSnapshot(competitorsColRef, (snapshot) => {
+                                competitors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                                console.log("Fetched competitors from Firestore:", competitors);
+                                renderCompetitors();
+                            }, (error) => {
+                                console.error("Error getting real-time data: ", error);
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error during Firebase initialization or sign-in:", error);
+                    loadingAuthSpan.textContent = `Authentication failed.`;
+                }
+            };
+            
+            // Add the form submit event listener and cancel button listener
+            form.addEventListener('submit', handleFormSubmit);
+            cancelBtn.addEventListener('click', cancelEdit);
+
+            // Initialize the app on page load
+            initFirebaseAndListener();
+        })();
+    </script>
+
+</body>
+</html>
