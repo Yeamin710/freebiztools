@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Persona Builder | FreeBizTools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .form-section {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #ffffff;
+        }
+        .persona-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+        .persona-list-item {
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .persona-list-item:hover {
+            background-color: #f3f4f6;
+        }
+        .persona-list-item.active {
+            background-color: #e5e7eb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6 md:px-12 lg:px-24 flex items-center justify-between rounded-b-lg">
+        <div class="text-xl font-semibold text-gray-800">FreeBizTools</div>
+        <nav class="hidden md:flex space-x-8">
+            <a href="index.html" class="text-gray-600 hover:text-gray-900 font-medium">Home</a>
+            <a href="marketing-calendar.html" class="text-gray-600 hover:text-gray-900 font-medium">Marketing Calendar</a>
+            <a href="customer-persona-builder.html" class="text-gray-600 hover:text-gray-900 font-medium">Persona Builder</a>
+            <a href="crm-lite.html" target="_blank" class="text-gray-600 hover:text-gray-900 font-medium">CRM Lite</a>
+            <a href="about.html" class="text-gray-600 hover:text-gray-900 font-medium">Contact</a>
+        </nav>
+        <div class="flex items-center space-x-4">
+            <!-- User Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-600 cursor-pointer"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <!-- Bell Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-600 cursor-pointer"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8 md:px-12 lg:px-24">
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Customer Persona Builder</h1>
+            <p class="text-gray-600 mb-6">Create a detailed profile of your ideal customer to inform your marketing and product strategy.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Persona List & Controls -->
+                <div class="col-span-1 bg-gray-50 p-4 rounded-lg shadow-inner">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Your Personas</h3>
+                        <button id="newPersonaBtn" class="bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-md hover:bg-gray-700 transition duration-200">
+                            + New
+                        </button>
+                    </div>
+                    <ul id="personaList" class="space-y-2">
+                        <!-- Persona items will be dynamically added here -->
+                        <li class="text-gray-500 text-sm">Loading personas...</li>
+                    </ul>
+                </div>
+
+                <!-- Persona Form -->
+                <div class="md:col-span-2">
+                    <form id="personaForm" class="form-section">
+                        <h3 id="formTitle" class="text-xl font-bold mb-4">Create New Persona</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="personaName" class="block text-gray-700 font-medium mb-1">Persona Name</label>
+                                <input type="text" id="personaName" class="w-full p-2 border border-gray-300 rounded-md" placeholder="e.g., 'Marketing Manager Mike'" required>
+                            </div>
+                            <div>
+                                <label for="demographics" class="block text-gray-700 font-medium mb-1">Demographics</label>
+                                <textarea id="demographics" rows="3" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Age, location, education, income, etc."></textarea>
+                            </div>
+                            <div>
+                                <label for="job" class="block text-gray-700 font-medium mb-1">Job & Responsibilities</label>
+                                <textarea id="job" rows="3" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Job title, key responsibilities, what a typical day looks like."></textarea>
+                            </div>
+                            <div>
+                                <label for="goals" class="block text-gray-700 font-medium mb-1">Goals & Motivations</label>
+                                <textarea id="goals" rows="3" class="w-full p-2 border border-gray-300 rounded-md" placeholder="What are they trying to achieve? What drives them?"></textarea>
+                            </div>
+                            <div>
+                                <label for="painPoints" class="block text-gray-700 font-medium mb-1">Pain Points & Challenges</label>
+                                <textarea id="painPoints" rows="3" class="w-full p-2 border border-gray-300 rounded-md" placeholder="What problems do they face? What frustrations do they have?"></textarea>
+                            </div>
+                            <div>
+                                <label for="channels" class="block text-gray-700 font-medium mb-1">Channels & Information Sources</label>
+                                <textarea id="channels" rows="3" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Where do they get their information? (e.g., social media, blogs, industry forums)"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end gap-2">
+                            <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-700 transition duration-200">Save Persona</button>
+                            <button type="button" id="deletePersonaBtn" class="hidden bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for messages -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="modalCloseBtn">&times;</span>
+            <p id="modalMessage" class="text-lg font-semibold"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports - all using v12.0.0
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, setDoc, doc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        // --- Firebase Configuration (Provided by user) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4zTA5XGJADWLrTjS_GtlJgfhDfMdr7HM",
+            authDomain: "thynkrcrmlite.firebaseapp.com",
+            projectId: "thynkrcrmlite",
+            storageBucket: "thynkrcrmlite.firebasestorage.app",
+            messagingSenderId: "619362346374",
+            appId: "1:619362346374:web:916ed49b80fc4a5a157807",
+            measurementId: "G-32QKE300RP"
+        };
+
+        // --- Global Variables for Firebase ---
+        let app, db, auth;
+        let userId = 'anonymous';
+        let isAuthReady = false;
+
+        // --- UI Element Selectors ---
+        const personaForm = document.getElementById('personaForm');
+        const personaList = document.getElementById('personaList');
+        const newPersonaBtn = document.getElementById('newPersonaBtn');
+        const deletePersonaBtn = document.getElementById('deletePersonaBtn');
+        const formTitle = document.getElementById('formTitle');
+        
+        // Form inputs
+        const personaNameInput = document.getElementById('personaName');
+        const demographicsInput = document.getElementById('demographics');
+        const jobInput = document.getElementById('job');
+        const goalsInput = document.getElementById('goals');
+        const painPointsInput = document.getElementById('painPoints');
+        const channelsInput = document.getElementById('channels');
+
+        // Modal elements
+        const messageModal = document.getElementById('messageModal');
+        const modalMessageEl = document.getElementById('modalMessage');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        
+        // --- App State ---
+        let currentPersonaId = null;
+
+        // --- Firebase Initialization and Auth ---
+        const initFirebase = async (config) => {
+            try {
+                app = initializeApp(config);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Sign in anonymously
+                const userCredential = await signInAnonymously(auth);
+                const user = userCredential.user;
+                userId = user.uid;
+                isAuthReady = true;
+                
+                listenForPersonas();
+            } catch (error) {
+                console.error("Error initializing Firebase or authenticating:", error);
+                showModal(`Connection to Firebase failed: ${error.message}`, "error");
+            }
+        };
+
+        // --- Data Persistence Functions (Firestore) ---
+        // Helper for exponential backoff retries
+        const retryOperation = async (operation, maxRetries = 5, delay = 1000) => {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (error.code === 'unavailable' || error.code === 'resource-exhausted') {
+                        console.warn(`Retry attempt ${i + 1} for operation. Retrying in ${delay / 1000}s...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2; // Exponential backoff
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+            throw new Error('Max retries exceeded for operation.');
+        };
+
+        const listenForPersonas = () => {
+            if (!db || !isAuthReady) return;
+
+            // The collection path uses the user's provided project ID for a clean structure
+            const userAppId = firebaseConfig.projectId; 
+            const personasCollectionRef = collection(db, `artifacts/${userAppId}/users/${userId}/customer_personas`);
+
+            onSnapshot(personasCollectionRef, (querySnapshot) => {
+                const personas = [];
+                querySnapshot.forEach((doc) => {
+                    personas.push({ id: doc.id, ...doc.data() });
+                });
+                renderPersonaList(personas);
+                if (personas.length > 0 && !currentPersonaId) {
+                    loadPersonaForEdit(personas[0]);
+                } else if (personas.length === 0) {
+                    resetForm();
+                }
+            }, (error) => {
+                console.error("Error fetching personas: ", error);
+                if (error.code === 'permission-denied') {
+                    showModal(`Error: Missing or insufficient permissions. Please update your Firestore security rules as instructed at the top of the page.`, "error");
+                }
+            });
+        };
+
+        const savePersona = async (personaData) => {
+            if (!db || !isAuthReady) {
+                showModal("Application is not ready. Please connect to Firebase.", "error");
+                return;
+            }
+            
+            try {
+                const userAppId = firebaseConfig.projectId;
+                if (currentPersonaId) {
+                    // Update existing persona
+                    const personaDocRef = doc(db, `artifacts/${userAppId}/users/${userId}/customer_personas`, currentPersonaId);
+                    await retryOperation(() => setDoc(personaDocRef, { ...personaData, lastUpdated: new Date() }, { merge: true }));
+                    showModal("Persona successfully updated!", "success");
+                } else {
+                    // Add new persona
+                    const personasCollectionRef = collection(db, `artifacts/${userAppId}/users/${userId}/customer_personas`);
+                    const docRef = await retryOperation(() => addDoc(personasCollectionRef, { ...personaData, createdAt: new Date() }));
+                    currentPersonaId = docRef.id;
+                    showModal("Persona successfully saved!", "success");
+                }
+            } catch (e) {
+                console.error("Error saving persona: ", e);
+                if (e.code === 'permission-denied') {
+                    showModal(`Error: Missing or insufficient permissions. Please update your Firestore security rules as instructed at the top of the page.`, "error");
+                } else {
+                    showModal("Error saving persona. Please check your Firestore security rules.", "error");
+                }
+            }
+        };
+        
+        const deletePersona = async () => {
+            if (!db || !isAuthReady || !currentPersonaId) {
+                showModal("Cannot delete. No persona is selected.", "error");
+                return;
+            }
+            
+            try {
+                const userAppId = firebaseConfig.projectId;
+                const personaDocRef = doc(db, `artifacts/${userAppId}/users/${userId}/customer_personas`, currentPersonaId);
+                await retryOperation(() => deleteDoc(personaDocRef));
+                showModal("Persona successfully deleted!", "success");
+                resetForm();
+            } catch (e) {
+                console.error("Error deleting persona: ", e);
+                if (e.code === 'permission-denied') {
+                    showModal(`Error: Missing or insufficient permissions. Please update your Firestore security rules as instructed at the top of the page.`, "error");
+                } else {
+                    showModal("Error deleting persona. Please check your Firestore security rules.", "error");
+                }
+            }
+        };
+
+        // --- UI Logic ---
+        const renderPersonaList = (personas) => {
+            personaList.innerHTML = '';
+            if (personas.length === 0) {
+                personaList.innerHTML = `<li class="text-gray-500 text-sm">No personas created yet.</li>`;
+            } else {
+                personas.forEach(persona => {
+                    const li = document.createElement('li');
+                    li.textContent = persona.personaName;
+                    li.dataset.personaId = persona.id; // Store ID for active state
+                    li.classList.add('persona-list-item');
+                    if (currentPersonaId === persona.id) {
+                        li.classList.add('active');
+                    }
+                    li.addEventListener('click', () => loadPersonaForEdit(persona));
+                    personaList.appendChild(li);
+                });
+            }
+        };
+        
+        const loadPersonaForEdit = (persona) => {
+            currentPersonaId = persona.id;
+            formTitle.textContent = `Edit Persona: ${persona.personaName}`;
+            personaNameInput.value = persona.personaName;
+            demographicsInput.value = persona.demographics || '';
+            jobInput.value = persona.job || '';
+            goalsInput.value = persona.goals || '';
+            painPointsInput.value = persona.painPoints || '';
+            channelsInput.value = persona.channels || '';
+            deletePersonaBtn.classList.remove('hidden');
+
+            // Update the active class in the list
+            document.querySelectorAll('.persona-list-item').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector(`li[data-persona-id="${persona.id}"]`);
+            if (activeItem) activeItem.classList.add('active');
+        };
+        
+        const resetForm = () => {
+            currentPersonaId = null;
+            personaForm.reset();
+            formTitle.textContent = "Create New Persona";
+            deletePersonaBtn.classList.add('hidden');
+            // Remove active class from all list items
+            document.querySelectorAll('.persona-list-item').forEach(item => item.classList.remove('active'));
+        };
+
+        // --- Event Listeners ---
+        newPersonaBtn.addEventListener('click', resetForm);
+        deletePersonaBtn.addEventListener('click', deletePersona);
+
+        personaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const personaData = {
+                personaName: personaNameInput.value,
+                demographics: demographicsInput.value,
+                job: jobInput.value,
+                goals: goalsInput.value,
+                painPoints: painPointsInput.value,
+                channels: channelsInput.value,
+            };
+            await savePersona(personaData);
+        });
+
+        // Modal functions
+        const showModal = (message, type) => {
+            modalMessageEl.textContent = message;
+            modalMessageEl.className = 'text-lg font-semibold';
+            if (type === 'success') {
+                modalMessageEl.classList.add('text-green-600');
+            } else if (type === 'error') {
+                modalMessageEl.classList.add('text-red-600');
+            }
+            messageModal.style.display = 'flex';
+        };
+
+        modalCloseBtn.addEventListener('click', () => {
+            messageModal.style.display = 'none';
+        });
+        messageModal.addEventListener('click', (e) => {
+            if (e.target === messageModal) {
+                messageModal.style.display = 'none';
+            }
+        });
+
+        // Initialize Firebase on page load
+        window.addEventListener('load', () => {
+            initFirebase(firebaseConfig);
+        });
+    </script>
+</body>
+</html>
