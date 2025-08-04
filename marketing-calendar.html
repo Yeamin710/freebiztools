@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marketing Calendar | FreeBizTools</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -22,11 +23,12 @@
         }
         .day {
             background-color: #ffffff;
-            height: 120px; /* Fixed height for consistent layout */
+            height: 120px;
             position: relative;
             padding: 0.5rem;
             overflow: hidden;
             transition: background-color 0.2s ease;
+            cursor: pointer;
         }
         .day:hover {
             background-color: #f3f4f6;
@@ -34,6 +36,7 @@
         .day.inactive {
             background-color: #f9fafb;
             color: #d1d5db;
+            cursor: not-allowed;
         }
         .day-header {
             background-color: #f3f4f6;
@@ -53,6 +56,7 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         .modal {
             position: fixed;
@@ -95,13 +99,11 @@
 
     <!-- Header -->
     <header class="bg-white shadow-sm py-4 px-6 md:px-12 lg:px-24 flex items-center justify-between rounded-b-lg">
-        <div class="text-xl font-semibold text-gray-800">FreeBizTools</div>
+        <a href="/" class="text-xl font-semibold text-gray-800">FreeBizTools</a>
         <nav class="hidden md:flex space-x-8">
-            <a href="#" class="text-gray-600 hover:text-gray-900 font-medium">Home</a>
-            <a href="#" class="text-gray-900 font-medium border-b-2 border-gray-800">Marketing Calendar</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900 font-medium">Persona Builder</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900 font-medium">CRM Lite</a>
-            <a href="#" class="text-gray-600 hover:text-gray-900 font-medium">Contact</a>
+            <a href="/" class="text-gray-600 hover:text-gray-900 font-medium">Home</a>
+            <a href="/crm" class="text-gray-600 hover:text-gray-900 font-medium">CRM Lite</a>
+            <a href="/contact" class="text-gray-600 hover:text-gray-900 font-medium">Contact</a>
         </nav>
         <div class="flex items-center space-x-4">
             <!-- User Icon -->
@@ -116,10 +118,6 @@
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">Marketing Calendar</h1>
             <p class="text-gray-600 mb-6">Plan and track your marketing activities throughout the month.</p>
-
-            <div id="user-info" class="text-sm text-gray-500 mb-4">
-              <span class="font-medium">User ID:</span> <span id="user-id">Loading...</span>
-            </div>
 
             <!-- Calendar Navigation -->
             <div class="flex justify-between items-center mb-6">
@@ -169,28 +167,14 @@
             <h3 class="text-xl font-bold mb-4">Confirm Deletion</h3>
             <p class="text-gray-700 mb-6">Are you sure you want to delete this event?</p>
             <div class="flex justify-end gap-2">
-                <button id="cancelDeleteBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-300 transition duration-200">Cancel</button>
-                <button id="confirmDeleteBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200">Delete</button>
+                <button type="button" id="cancelDeleteBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow-md hover:bg-gray-300 transition duration-200">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200">Delete</button>
             </div>
         </div>
     </div>
 
 
-    <script type="module">
-        // Firebase imports - using v11.6.1 as per best practices
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, setDoc, doc, onSnapshot, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- Global Variables provided by the environment ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // --- Global Firebase State ---
-        let db, auth;
-        let userId;
-
+    <script>
         // --- UI Element Selectors ---
         const calendarGrid = document.getElementById('calendar-grid');
         const currentMonthYear = document.getElementById('currentMonthYear');
@@ -209,105 +193,109 @@
         const deleteConfirmModal = document.getElementById('deleteConfirmModal');
         const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const userIdDisplay = document.getElementById('user-id');
 
         // --- App State ---
         let currentMonth = new Date();
-        let events = []; // Array to hold all events from Firestore
-        let eventToDeleteId = null;
+        let events = []; // Array to hold all events
+        const storageKey = 'marketing_events_v1'; // Key for localStorage
 
-        // --- Firebase Initialization and Auth ---
-        const initFirebase = async () => {
+        /**
+         * Loads events from localStorage.
+         * @returns {Array} An array of event objects.
+         */
+        const loadEventsFromLocalStorage = () => {
             try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                // Sign in with custom token or anonymously if not available
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                userId = auth.currentUser?.uid || null;
-                if (userId) {
-                    userIdDisplay.textContent = userId;
-                    listenForEvents();
-                } else {
-                    userIdDisplay.textContent = 'Could not get user ID';
-                }
-                
-            } catch (error) {
-                console.error("Error initializing Firebase or authenticating:", error);
-            }
-        };
-
-        // --- Data Persistence Functions (Firestore) ---
-        const listenForEvents = () => {
-            if (!db || !userId) return;
-
-            const eventsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/marketing_events`);
-
-            // Listen for real-time changes
-            onSnapshot(eventsCollectionRef, (querySnapshot) => {
-                const fetchedEvents = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    fetchedEvents.push({
-                        id: doc.id,
-                        ...data,
-                        date: data.date.toDate() // Convert Firestore Timestamp to JS Date object
-                    });
-                });
-                events = fetchedEvents; // Update the global events array
-                renderCalendar();
-            }, (error) => {
-                console.error("Error fetching events: ", error);
-            });
-        };
-
-        const saveEvent = async (eventData) => {
-            if (!db || !userId) return;
-            
-            try {
-                if (eventData.id) {
-                    // Update existing event
-                    const eventDocRef = doc(db, `artifacts/${appId}/users/${userId}/marketing_events`, eventData.id);
-                    await setDoc(eventDocRef, { 
-                        title: eventData.title,
-                        description: eventData.description,
-                        channel: eventData.channel,
-                        date: Timestamp.fromDate(new Date(eventData.date))
-                    }, { merge: true });
-                } else {
-                    // Add new event
-                    const eventsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/marketing_events`);
-                    await addDoc(eventsCollectionRef, {
-                        title: eventData.title,
-                        description: eventData.description,
-                        channel: eventData.channel,
-                        date: Timestamp.fromDate(new Date(eventData.date)),
-                        createdAt: Timestamp.now()
+                const storedEvents = localStorage.getItem(storageKey);
+                if (storedEvents) {
+                    // Parse the JSON string and convert date strings back to Date objects
+                    const parsedEvents = JSON.parse(storedEvents);
+                    // Adjust to create Date objects from year, month, day to avoid timezone issues
+                    return parsedEvents.map(event => {
+                        const newDate = new Date(event.year, event.month, event.day);
+                        return {
+                            ...event,
+                            date: newDate
+                        };
                     });
                 }
             } catch (e) {
-                console.error("Error saving event: ", e);
+                console.error("Failed to load events from local storage:", e);
+                return [];
             }
+            return [];
+        };
+
+        /**
+         * Saves the current events array to localStorage.
+         */
+        const saveEventsToLocalStorage = () => {
+            try {
+                // Convert date objects to ISO strings before saving
+                const eventsToSave = events.map(event => ({
+                    id: event.id,
+                    title: event.title,
+                    description: event.description,
+                    channel: event.channel,
+                    // Store year, month, and day separately to avoid timezone issues
+                    year: event.date.getFullYear(),
+                    month: event.date.getMonth(),
+                    day: event.date.getDate()
+                }));
+                localStorage.setItem(storageKey, JSON.stringify(eventsToSave));
+            } catch (e) {
+                console.error("Failed to save events to local storage:", e);
+            }
+        };
+
+        /**
+         * Saves a new or updates an existing event.
+         * @param {object} eventData The event data to save.
+         */
+        const saveEvent = (eventData) => {
+            // Parse the date string into year, month, and day
+            const [year, month, day] = eventData.date.split('-').map(Number);
+            const newDate = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+
+            if (eventData.id) {
+                // Update existing event
+                const index = events.findIndex(e => e.id === eventData.id);
+                if (index !== -1) {
+                    events[index] = {
+                        id: eventData.id,
+                        title: eventData.title,
+                        description: eventData.description,
+                        channel: eventData.channel,
+                        date: newDate
+                    };
+                }
+            } else {
+                // Add new event
+                const newEvent = {
+                    id: Date.now().toString(), // Simple unique ID
+                    title: eventData.title,
+                    description: eventData.description,
+                    channel: eventData.channel,
+                    date: newDate
+                };
+                events.push(newEvent);
+            }
+            saveEventsToLocalStorage();
+            renderCalendar();
         };
         
-        const deleteEvent = async (eventId) => {
-            if (!db || !userId || !eventId) return;
-
-            try {
-                const eventDocRef = doc(db, `artifacts/${appId}/users/${userId}/marketing_events`, eventId);
-                await deleteDoc(eventDocRef);
-            } catch (e) {
-                console.error("Error deleting event: ", e);
-            }
+        /**
+         * Deletes an event.
+         * @param {string} eventId The ID of the event to delete.
+         */
+        const deleteEvent = (eventId) => {
+            events = events.filter(event => event.id !== eventId);
+            saveEventsToLocalStorage();
+            renderCalendar();
         };
 
-        // --- UI Rendering and Logic ---
+        /**
+         * Renders the calendar grid based on the current month and available events.
+         */
         const renderCalendar = () => {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
@@ -330,10 +318,9 @@
 
             // Render inactive days from the previous month
             for (let i = 0; i < startDayIndex; i++) {
-                const prevMonthDate = new Date(year, month, 0 - startDayIndex + i + 1);
                 const prevMonthDay = document.createElement('div');
                 prevMonthDay.classList.add('day', 'inactive');
-                prevMonthDay.innerHTML = `<span class="text-sm font-semibold">${prevMonthDate.getDate()}</span>`;
+                prevMonthDay.innerHTML = `<span class="text-sm font-semibold text-gray-400"></span>`; 
                 calendarGrid.appendChild(prevMonthDay);
             }
 
@@ -342,7 +329,7 @@
                 const dayDiv = document.createElement('div');
                 dayDiv.classList.add('day', 'flex', 'flex-col');
                 const date = new Date(year, month, day);
-                dayDiv.dataset.date = date.toISOString().split('T')[0];
+                
                 dayDiv.innerHTML = `<span class="text-sm font-semibold text-gray-900">${day}</span>`;
                 
                 // Add click listener for adding a new event
@@ -352,7 +339,7 @@
 
                 // Add events for this day
                 const dayEvents = events.filter(e => {
-                    const eventDate = new Date(e.date);
+                    const eventDate = e.date;
                     return eventDate.getFullYear() === year && eventDate.getMonth() === month && eventDate.getDate() === day;
                 });
                 
@@ -375,6 +362,11 @@
             }
         };
 
+        /**
+         * Opens the event modal for adding or editing an event.
+         * @param {Date|null} date The date for a new event.
+         * @param {object|null} event The existing event data to edit.
+         */
         const openModal = (date, event = null) => {
             eventForm.reset();
             eventIdInput.value = '';
@@ -385,29 +377,48 @@
                 eventTitleInput.value = event.title;
                 eventDescriptionInput.value = event.description || '';
                 eventChannelInput.value = event.channel || '';
-                eventDateInput.value = event.date.toISOString().split('T')[0];
+                // Format the date correctly to avoid timezone issues
+                const year = event.date.getFullYear();
+                const month = (event.date.getMonth() + 1).toString().padStart(2, '0');
+                const day = event.date.getDate().toString().padStart(2, '0');
+                eventDateInput.value = `${year}-${month}-${day}`;
+
                 eventIdInput.value = event.id;
                 deleteEventBtn.classList.remove('hidden');
             } else {
                 modalTitle.textContent = 'Add New Event';
-                eventDateInput.value = date.toISOString().split('T')[0];
+                // Format the date correctly for new events
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                eventDateInput.value = `${year}-${month}-${day}`;
             }
             
             eventModal.classList.add('open');
         };
 
+        /**
+         * Closes the event modal.
+         */
         const closeModal = () => {
             eventModal.classList.remove('open');
         };
 
+        /**
+         * Opens the deletion confirmation modal.
+         * @param {string} eventId The ID of the event to delete.
+         */
         const openDeleteModal = (eventId) => {
-            eventToDeleteId = eventId;
+            confirmDeleteBtn.dataset.eventId = eventId;
             deleteConfirmModal.classList.add('open');
         };
 
+        /**
+         * Closes the deletion confirmation modal.
+         */
         const closeDeleteModal = () => {
             deleteConfirmModal.classList.remove('open');
-            eventToDeleteId = null;
+            confirmDeleteBtn.dataset.eventId = null;
         };
 
         // --- Event Listeners ---
@@ -421,7 +432,7 @@
             renderCalendar();
         });
 
-        eventForm.addEventListener('submit', async (e) => {
+        eventForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const eventData = {
                 title: eventTitleInput.value,
@@ -430,27 +441,32 @@
                 date: eventDateInput.value,
                 id: eventIdInput.value || null
             };
-            await saveEvent(eventData);
+            saveEvent(eventData);
             closeModal();
         });
 
-        deleteEventBtn.addEventListener('click', () => {
+        deleteEventBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             openDeleteModal(eventIdInput.value);
-            closeModal(); // Close the event form modal
+            closeModal();
         });
         
         // Confirmation modal buttons
         cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-        confirmDeleteBtn.addEventListener('click', async () => {
-            await deleteEvent(eventToDeleteId);
+        confirmDeleteBtn.addEventListener('click', () => {
+            const eventId = confirmDeleteBtn.dataset.eventId;
+            if (eventId) {
+                deleteEvent(eventId);
+            }
             closeDeleteModal();
         });
 
         modalCloseBtn.addEventListener('click', closeModal);
 
+        // Initial setup on window load
         window.addEventListener('load', () => {
-            initFirebase();
-            // The calendar will be rendered by the onSnapshot listener after data is fetched.
+            events = loadEventsFromLocalStorage();
+            renderCalendar();
         });
     </script>
 </body>
