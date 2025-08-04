@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice Generator</title>
+    <!-- Page description for SEO and clarity -->
+    <meta name="description" content="A simple web-based invoice generator tool that allows you to create, edit, and download professional invoices as a PDF.">
     <!-- Use the Inter font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
     <!-- Tailwind CSS CDN -->
@@ -35,8 +37,23 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-4 sm:p-8">
 
-    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden p-6 sm:p-10">
+    <!-- Container for the "Back to Home" button to ensure it's always visible -->
+    <div class="w-full mb-4">
+        <a href="https://yeamin710.github.io/freebiztools/index.html"
+           class="inline-block bg-gray-800 text-white py-2 px-4 rounded-md font-semibold
+                  hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
+                  focus:ring-gray-700 focus:ring-offset-2">
+            Back to Home
+        </a>
+    </div>
+    
+    <!-- Visible Title and Description - Now outside the PDF generation area -->
+    <div class="max-w-4xl mx-auto mb-8 text-center">
+        <h2 class="text-3xl font-bold text-gray-800">Invoice Generator Tool</h2>
+        <p class="mt-2 text-lg text-gray-600">Create professional invoices quickly and easily with this simple web-based tool.</p>
+    </div>
 
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden p-6 sm:p-10">
         <!-- Invoice Header -->
         <header id="invoice-header" class="mb-8">
             <div class="flex justify-between items-start">
@@ -213,7 +230,7 @@ your.email@example.com</textarea>
 
             // Function to generate the PDF
             async function generatePDF() {
-                const element = document.querySelector('div.max-w-4xl'); // Get the main container
+                const element = document.querySelector('div.max-w-4xl.bg-white'); // Get the main container for the invoice
 
                 // Use an array to store a reference to the newly created spans
                 const generatedSpans = [];
