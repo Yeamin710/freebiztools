@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreeBizTools</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use the Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -37,11 +39,13 @@
         .feature-list li {
             margin-bottom: 0.5rem;
             display: flex;
-            align-items: center;
+            align-items: flex-start; /* Align checkmark to the top of the text */
         }
         .feature-list li svg {
             margin-right: 0.5rem;
             color: #10b981; /* Green checkmark */
+            flex-shrink: 0;
+            margin-top: 0.25rem; /* Adjust for better alignment */
         }
         /* Style for the anchor tag wrapping the icon-box */
         .tool-link {
@@ -68,6 +72,10 @@
         .search-input-container input:focus {
             border-color: #60a5fa; /* Blue-400 */
             box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25); /* Blue ring */
+        }
+        /* Style for hidden items */
+        .hidden-tool {
+            display: none !important;
         }
 
         /* Modal Styles */
@@ -122,20 +130,19 @@
 
     <!-- Header -->
     <header class="bg-white shadow-sm py-4 px-6 md:px-12 lg:px-24 flex items-center justify-between rounded-b-lg">
-        <div class="text-xl font-semibold text-gray-800">FreeBizTools</div>
-        <nav class="hidden md:flex space-x-8">
+        <a href="index.html" class="text-xl font-semibold text-gray-800">FreeBizTools</a>
+        <nav class="hidden md:flex items-center space-x-8">
             <a href="index.html" class="text-gray-600 hover:text-gray-900 font-medium">Home</a>
             <a href="#tools-section" class="text-gray-600 hover:text-gray-900 font-medium">Tools</a>
             <a href="crm-lite.html" target="_blank" class="text-gray-600 hover:text-gray-900 font-medium">CRM Lite</a>
             <a href="blog.html" class="text-gray-600 hover:text-gray-900 font-medium">Blog</a>
             <a href="about.html" class="text-gray-600 hover:text-gray-900 font-medium">Contact</a>
+            <!-- User and Bell Icons moved to the navigation bar -->
+            <div class="flex items-center space-x-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-600 cursor-pointer" aria-label="User account"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-600 cursor-pointer" aria-label="Notifications"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            </div>
         </nav>
-        <div class="flex items-center space-x-4">
-            <!-- User Icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-600 cursor-pointer"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <!-- Bell Icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-gray-600 cursor-pointer"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
-        </div>
     </header>
 
     <!-- Main Content -->
@@ -143,12 +150,15 @@
 
         <!-- Hero, Search, and Tools Grid Section -->
         <section>
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
                 FreeBizTools: Smart Tools to Grow Your Income & Company
             </h1>
+            <p class="text-lg text-gray-600 mb-8">
+                Your one-stop destination for simple, effective business and finance tools.
+            </p>
             <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
                 <div class="search-input-container">
-                    <input type="text" id="toolSearchInput" placeholder="Search tools...">
+                    <input type="text" id="toolSearchInput" placeholder="Search tools..." aria-label="Search tools">
                     <button id="searchButton" class="px-6 py-3 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-700 transition duration-200">
                         <div class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
@@ -156,7 +166,7 @@
                         </div>
                     </button>
                 </div>
-                <button id="exploreButton" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 transition duration-200">
+                <button id="exploreButton" class="px-6 py-3 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-700 transition duration-200">
                     Explore Tools
                 </button>
             </div>
@@ -168,6 +178,7 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                         <span class="text-center text-gray-700 font-medium">Salary After Tax Calculator</span>
+                        <p class="text-sm text-gray-500 mt-1">Calculate your take-home pay instantly.</p>
                     </div>
                 </a>
 
@@ -176,6 +187,7 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>
                         <span class="text-center text-gray-700 font-medium">Loan/EMI/Margin Calculator</span>
+                        <p class="text-sm text-gray-500 mt-1">Easily compute loan payments and profit margins.</p>
                     </div>
                 </a>
 
@@ -183,8 +195,9 @@
                 <a href="break-even-calculator.html" class="tool-link" target="_blank">
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path><path d="M12 14h.01"></path><path d="M12 10h.01"></path><path d="M9 14h.01"></path><path d="M9 10h.01"></path><path d="M15 14h.01"></path><path d="M15 10h.01"></path><path d="M9 18h.01"></path><path d="M15 18h.01"></path></svg>
-                    <span class="text-center text-gray-700 font-medium">Break-Even Calculator</span>
-                </div>
+                        <span class="text-center text-gray-700 font-medium">Break-Even Calculator</span>
+                        <p class="text-sm text-gray-500 mt-1">Find the point where your business becomes profitable.</p>
+                    </div>
                 </a>
 
                 <!-- Tool 4: Budget Planner -->
@@ -192,6 +205,7 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M19 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"></path><path d="M14 2v4"></path><path d="M10 2v4"></path><path d="M3 10h18"></path></svg>
                         <span class="text-center text-gray-700 font-medium">Budget Planner</span>
+                        <p class="text-sm text-gray-500 mt-1">Plan and track your finances with a simple tool.</p>
                     </div>
                 </a>
 
@@ -200,6 +214,7 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                         <span class="text-center text-gray-700 font-medium">Business Health Checker</span>
+                        <p class="text-sm text-gray-500 mt-1">Get an instant report on your company's performance.</p>
                     </div>
                 </a>
 
@@ -208,6 +223,7 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414L19 21.414a2 2 0 0 0 2.828 0l2-2a2 2 0 0 0 0-2.828Z"></path><path d="M7 7h.01"></path></svg>
                         <span class="text-center text-gray-700 font-medium">Pricing Strategy Adviser</span>
+                        <p class="text-sm text-gray-500 mt-1">Find the optimal price for your products or services.</p>
                     </div>
                 </a>
 
@@ -216,6 +232,7 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                         <span class="text-center text-gray-700 font-medium">Customer Lifetime Value (CLV)</span>
+                        <p class="text-sm text-gray-500 mt-1">Understand the long-term value of your customers.</p>
                     </div>
                 </a>
 
@@ -224,6 +241,43 @@
                     <div class="icon-box">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><circle cx="12" cy="10" r="2"></circle><line x1="12" x2="12" y1="2" y2="4"></line><line x1="8" x2="8" y1="2" y2="4"></line><line x1="16" x2="16" y1="2" y2="4"></line></svg>
                         <span class="text-center text-gray-700 font-medium">CRM Lite</span>
+                        <p class="text-sm text-gray-500 mt-1">Manage your customer relationships with ease.</p>
+                    </div>
+                </a>
+
+                <!-- New Tool 9: Customer Persona Builder -->
+                <a href="customer-persona-builder.html" class="tool-link" target="_blank">
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span class="text-center text-gray-700 font-medium">Customer Persona Builder</span>
+                        <p class="text-sm text-gray-500 mt-1">Create detailed customer profiles to target your audience.</p>
+                    </div>
+                </a>
+
+                <!-- New Tool 10: Marketing Calendar -->
+                <a href="marketing-calendar.html" class="tool-link" target="_blank">
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                        <span class="text-center text-gray-700 font-medium">Marketing Calendar</span>
+                        <p class="text-sm text-gray-500 mt-1">Plan and track your marketing campaigns with ease.</p>
+                    </div>
+                </a>
+
+                <!-- New Tool 11: Financial Statement Generator -->
+                <a href="financial-statement-generator.html" class="tool-link" target="_blank">
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+                        <span class="text-center text-gray-700 font-medium">Financial Statement Generator</span>
+                        <p class="text-sm text-gray-500 mt-1">Generate essential financial statements for your business.</p>
+                    </div>
+                </a>
+
+                <!-- New Tool 12: Invoice Generator -->
+                <a href="invoice-generator.html" class="tool-link" target="_blank">
+                    <div class="icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="16" y1="16" x2="8" y2="16"></line></svg>
+                        <span class="text-center text-gray-700 font-medium">Invoice Generator</span>
+                        <p class="text-sm text-gray-500 mt-1">Create professional invoices quickly and easily.</p>
                     </div>
                 </a>
             </div>
@@ -234,11 +288,31 @@
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">How It Works</h3>
-                <ol class="list-decimal list-inside text-gray-600 space-y-2">
-                    <li>Pick a Tool</li>
-                    <li>Input Your Data</li>
-                    <li>Get Instant Results & Tips</li>
-                    <li>Download/Share Reports (PDF)</li>
+                <ol class="list-none text-gray-600 space-y-2">
+                    <li class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        Pick a Tool
+                    </li>
+                    <li class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        Input Your Data
+                    </li>
+                    <li class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        Get Instant Results & Tips
+                    </li>
+                    <li class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        Download/Share Reports (PDF)
+                    </li>
                 </ol>
             </div>
 
@@ -272,7 +346,7 @@
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Newsletter Signup</h3>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="email" id="newsletterEmail" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="Email Input">
+                    <input type="email" id="newsletterEmail" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400" placeholder="Email Input" aria-label="Newsletter email address">
                     <button id="subscribeButton" class="px-6 py-2 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-700 transition duration-200">
                         Subscribe
                     </button>
@@ -282,7 +356,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white shadow-inner py-6 px-6 md:px-12 lg:px-24 mt-12 rounded-t-lg">
+    <footer class="bg-gray-50 shadow-inner py-6 px-6 md:px-12 lg:px-24 mt-12 rounded-t-lg">
         <div class="flex flex-col sm:flex-row justify-between items-center text-gray-600 text-sm space-y-4 sm:space-y-0">
             <div class="flex space-x-6">
                 <a href="privacy.html" class="hover:text-gray-900">Privacy</a>
@@ -290,9 +364,12 @@
                 <a href="about.html" class="hover:text-gray-900">About</a>
             </div>
             <div class="flex items-center space-x-4">
-                <span>Social Media Icons</span>
-                <!-- Example Social Media Icon (replace with actual icons) -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 cursor-pointer hover:text-gray-900"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 3h3v3"></path><path d="M16 21h3v-3"></path><path d="M3 16v3h3"></path><path d="M3 8V5h3"></path></svg>
+                <a href="#" aria-label="Follow us on Twitter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 cursor-pointer hover:text-gray-900"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 11.5-13.3 10.1C1.9 15.5.6 14.5.6 14.5s2.3-.9 4.3-2.1c1.5-.9 3.1-2.5 4-4.5.3-.6.6-1.2.9-1.8.6-1.2 1.5-2 2.5-2.5 1-.5 2.1-.8 3.3-.9.9-.1 1.8-.1 2.7-.1zm-1.8 1.8c-.8.8-1.5 1.7-2.3 2.7-.4.5-.8 1-1.2 1.6-1.5 1.5-3.1 2.4-4.8 2.8-1.7.4-3.5.2-5-.5.9 1.1 1.9 1.9 3.1 2.5 1.2.6 2.5.9 3.8.9 1.3 0 2.6-.3 3.8-.9.6-.3 1.2-.7 1.8-1.2.6-.5 1.1-1.1 1.6-1.8.5-.7.9-1.5 1.1-2.3.2-.8.3-1.7.3-2.6 0-.6-.1-1.2-.2-1.8z"></path></svg>
+                </a>
+                <a href="#" aria-label="Follow us on LinkedIn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 cursor-pointer hover:text-gray-900"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                </a>
             </div>
         </div>
     </footer>
@@ -300,19 +377,14 @@
     <!-- Modal for messages -->
     <div id="messageModal" class="modal hidden">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
+            <span class="close-button" aria-label="Close modal">&times;</span>
             <p id="modalMessage" class="text-lg font-semibold"></p>
         </div>
     </div>
 
     <script type="module">
-        // Firebase imports - ALL UPDATED TO 12.0.0
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-
-        // YOUR Firebase project's configuration
+        // NOTE: For security, the Firebase config should not be hardcoded in a public file.
+        // It's best practice to handle this via a server-side process or environment variables.
         const firebaseConfig = {
             apiKey: "AIzaSyA4zTA5XGJADWLrTjS_GtlJgfhDfMdr7HM",
             authDomain: "thynkrcrmlite.firebaseapp.com",
@@ -322,81 +394,79 @@
             appId: "1:619362346374:web:916ed49b80fc4a5a157807",
             measurementId: "G-32QKE300RP"
         };
-
-        // For GitHub Pages, we'll use the projectId as a unique identifier for the collection path
         const githubAppId = firebaseConfig.projectId;
-
         let db;
         let auth;
-        let analytics; // Declare analytics variable
-
-        // Initialize Firebase and authenticate
-        const initializeFirebase = async () => {
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                analytics = getAnalytics(app); // Initialize Analytics
-
-                // For public-facing features like newsletter, anonymous sign-in is suitable.
-                await signInAnonymously(auth);
-                console.log("Firebase initialized and authenticated.");
-            } catch (error) {
-                console.error("Error initializing Firebase or authenticating:", error);
-                showModal('Error initializing application. Please try again later.', 'error');
-            }
-        };
-
-        // Function to show the custom modal
-        const showModal = (message, type = 'info') => {
-            const modal = document.getElementById('messageModal');
-            const modalMessage = document.getElementById('modalMessage');
-
-            modalMessage.textContent = message;
-            modalMessage.className = 'text-lg font-semibold'; // Reset classes
-            if (type === 'success') {
-                modalMessage.classList.add('modal-success');
-            } else if (type === 'error') {
-                modalMessage.classList.add('modal-error');
-            }
-            modal.classList.remove('hidden');
-        };
-
-        // Function to hide the custom modal
-        const hideModal = () => {
-            document.getElementById('messageModal').classList.add('hidden');
-        };
+        let analytics;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize Firebase first
+            // Firebase imports - all updated to 12.0.0
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js");
+            const { getAuth, signInAnonymously } = await import("https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js");
+            const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js");
+            const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js");
+
+            // Initialize Firebase and authenticate
+            const initializeFirebase = async () => {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    analytics = getAnalytics(app);
+                    await signInAnonymously(auth);
+                    console.log("Firebase initialized and authenticated.");
+                } catch (error) {
+                    console.error("Error initializing Firebase or authenticating:", error);
+                    showModal('Error initializing application. Please try again later.', 'error');
+                }
+            };
             await initializeFirebase();
 
             const toolSearchInput = document.getElementById('toolSearchInput');
             const searchButton = document.getElementById('searchButton');
             const exploreButton = document.getElementById('exploreButton');
             const toolsSection = document.getElementById('tools-section');
-            const toolLinks = document.querySelectorAll('.tool-link'); // Select all tool links
+            const toolLinks = document.querySelectorAll('.tool-link');
             const newsletterEmailInput = document.getElementById('newsletterEmail');
             const subscribeButton = document.getElementById('subscribeButton');
             const messageModal = document.getElementById('messageModal');
             const closeButton = messageModal.querySelector('.close-button');
+
+            // Function to show the custom modal
+            const showModal = (message, type = 'info') => {
+                const modal = document.getElementById('messageModal');
+                const modalMessage = document.getElementById('modalMessage');
+                modalMessage.textContent = message;
+                modalMessage.className = 'text-lg font-semibold'; // Reset classes
+                if (type === 'success') {
+                    modalMessage.classList.add('modal-success');
+                } else if (type === 'error') {
+                    modalMessage.classList.add('modal-error');
+                }
+                modal.classList.remove('hidden');
+            };
+
+            // Function to hide the custom modal
+            const hideModal = () => {
+                document.getElementById('messageModal').classList.add('hidden');
+            };
 
             // --- Search Functionality ---
             const filterTools = () => {
                 const searchTerm = toolSearchInput.value.toLowerCase();
                 toolLinks.forEach(link => {
                     const toolName = link.querySelector('span').textContent.toLowerCase();
-                    if (toolName.includes(searchTerm)) {
-                        link.style.display = 'block'; // Show the tool link
+                    const toolDescription = link.querySelector('p')?.textContent.toLowerCase() || ''; // Use optional chaining for safety
+                    if (toolName.includes(searchTerm) || toolDescription.includes(searchTerm)) {
+                        link.classList.remove('hidden-tool');
                     } else {
-                        link.style.display = 'none'; // Hide the tool link
+                        link.classList.add('hidden-tool');
                     }
                 });
             };
 
             searchButton.addEventListener('click', filterTools);
             toolSearchInput.addEventListener('keyup', (event) => {
-                // Trigger filter on Enter key press or any key up
                 filterTools();
             });
 
@@ -408,7 +478,6 @@
             });
 
             // --- Newsletter Subscription Functionality ---
-            // Exponential backoff retry mechanism
             const retryOperation = async (operation, maxRetries = 5, delay = 1000) => {
                 for (let i = 0; i < maxRetries; i++) {
                     try {
@@ -417,9 +486,9 @@
                         if (error.code === 'unavailable' || error.code === 'resource-exhausted') {
                             console.warn(`Retry attempt ${i + 1} for operation. Retrying in ${delay / 1000}s...`);
                             await new Promise(res => setTimeout(res, delay));
-                            delay *= 2; // Exponential backoff
+                            delay *= 2;
                         } else {
-                            throw error; // Re-throw other errors
+                            throw error;
                         }
                     }
                 }
@@ -428,47 +497,35 @@
 
             subscribeButton.addEventListener('click', async () => {
                 const email = newsletterEmailInput.value.trim();
-
                 if (!email) {
                     showModal('Please enter your email address.', 'error');
                     return;
                 }
-
-                // Basic email validation
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                     showModal('Please enter a valid email address.', 'error');
                     return;
                 }
-
                 if (!db) {
                     showModal('Database not initialized. Please try again.', 'error');
                     return;
                 }
-
                 try {
-                    // Use the githubAppId (which is your Firebase Project ID) for the collection path
-                    // This creates a collection like: /artifacts/your-project-id/public/data/newsletter_subscribers
                     const newsletterCollectionRef = collection(db, `artifacts/${githubAppId}/public/data/newsletter_subscribers`);
-
                     await retryOperation(async () => {
                         await addDoc(newsletterCollectionRef, {
                             email: email,
                             timestamp: new Date()
                         });
                     });
-
                     showModal('Thank you for subscribing to our newsletter!', 'success');
-                    newsletterEmailInput.value = ''; // Clear input field
+                    newsletterEmailInput.value = '';
                 } catch (e) {
                     console.error("Error adding document: ", e);
                     showModal('Failed to subscribe. Please try again later.', 'error');
                 }
             });
 
-            // Close modal when close button is clicked
             closeButton.addEventListener('click', hideModal);
-
-            // Close modal when clicking outside of the modal content
             messageModal.addEventListener('click', (event) => {
                 if (event.target === messageModal) {
                     hideModal();
