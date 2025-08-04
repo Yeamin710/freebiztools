@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Professional Document Generator: Invoices, Quotations, & Receipts</title>
-    <meta name="description" content="A versatile online tool to create, edit, and generate professional PDF documents for invoices, quotations, and receipts. Easily customize company details, line items, and totals.">
+    <title id="page-title">Professional Document Generator: Quotations & Receipts</title>
+    <meta name="description" content="A versatile online tool to create, edit, and generate professional PDF documents for quotations and receipts. Easily customize company details, line items, and totals.">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -38,7 +38,7 @@
             Professional Document Generator
         </h1>
         <p class="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">
-            A versatile online tool to create, edit, and generate professional PDF documents for invoices, quotations, and receipts.
+            A versatile online tool to create, edit, and generate professional PDF documents for quotations and receipts.
         </p>
     </div>
 
@@ -46,8 +46,8 @@
     <div class="w-full mb-4 flex flex-col sm:flex-row justify-between items-center max-w-4xl mx-auto">
         <a href="https://yeamin710.github.io/freebiztools/index.html"
            class="inline-block bg-gray-800 text-white py-2 px-4 rounded-md font-semibold
-                  hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
-                  focus:ring-gray-700 focus:ring-offset-2 mb-4 sm:mb-0">
+                    hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
+                    focus:ring-gray-700 focus:ring-offset-2 mb-4 sm:mb-0">
             Back to Home
         </a>
 
@@ -55,7 +55,6 @@
         <div class="flex items-center">
             <label for="document-type" class="mr-2 text-gray-700 font-medium">Document Type:</label>
             <select id="document-type" class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="invoice">Invoice</option>
                 <option value="quotation">Quotation</option>
                 <option value="receipt">Receipt</option>
             </select>
@@ -69,8 +68,8 @@
         <header id="document-header" class="mb-8">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 id="document-title" class="text-3xl sm:text-4xl font-bold text-gray-800">INVOICE</h1>
-                    <p class="text-sm text-gray-500 mt-1">#<input type="text" id="document-number" value="INV-001" class="w-24 border-b border-gray-300 focus:outline-none focus:border-blue-500 text-gray-600 font-medium"></p>
+                    <h1 id="document-title" class="text-3xl sm:text-4xl font-bold text-gray-800">QUOTATION</h1>
+                    <p class="text-sm text-gray-500 mt-1">#<input type="text" id="document-number" value="QUOT-001" class="w-24 border-b border-gray-300 focus:outline-none focus:border-blue-500 text-gray-600 font-medium"></p>
                 </div>
                 <!-- Company Details - Editable -->
                 <div class="text-right">
@@ -96,7 +95,7 @@ your.email@example.com</textarea>
                         <label for="document-date" class="block text-gray-600 font-medium">Document Date:</label>
                         <input type="date" id="document-date" class="w-full sm:w-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-                    <div id="due-date-container" class="mb-2">
+                    <div id="due-date-container" class="mb-2" style="display: none;">
                         <label for="due-date" class="block text-gray-600 font-medium">Due Date:</label>
                         <input type="date" id="due-date" class="w-full sm:w-auto p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -201,14 +200,6 @@ your.email@example.com</textarea>
             // Function to update the document type and UI
             function updateDocumentType(type) {
                 switch(type) {
-                    case 'invoice':
-                        documentTitle.textContent = 'INVOICE';
-                        documentNumberInput.value = 'INV-001';
-                        dueDateContainer.style.display = 'block';
-                        billToLabel.textContent = 'BILL TO';
-                        generatePdfBtn.textContent = 'Generate Invoice PDF';
-                        notesContainer.style.display = 'block';
-                        break;
                     case 'quotation':
                         documentTitle.textContent = 'QUOTATION';
                         documentNumberInput.value = 'QUOT-001';
@@ -357,7 +348,7 @@ your.email@example.com</textarea>
             });
             
             // Initial setup
-            updateDocumentType('invoice');
+            updateDocumentType('quotation');
             calculateTotals();
         };
     </script>
