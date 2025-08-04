@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Statement Generator</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font import for a cleaner look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .statement-table th {
+            padding: 0.5rem;
+            font-weight: 600;
+        }
+        .statement-table td {
+            padding: 0.5rem;
+        }
+        .statement-section {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+        .loading-overlay, .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* CSS for printing only - More robust styling */
+        @media print {
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* Hide the form, buttons, and the view buttons when printing with !important */
+            .print-hidden, .print-hide-header {
+                display: none !important;
+            }
+            /* Ensure each statement starts on a new page and has a consistent top margin */
+            .statement-section {
+                page-break-before: always;
+                box-shadow: none !important;
+                border: none !important;
+                /* Use a consistent margin to ensure proper top and bottom spacing */
+                margin: 1cm !important;
+                padding: 1cm !important;
+                border-radius: 0 !important;
+            }
+            /* The first statement on the page doesn't need a top margin */
+            .statement-section:first-of-type {
+                page-break-before: auto;
+                margin-top: 0 !important;
+            }
+            .statements-output-wrapper {
+                padding: 0 !important; /* Remove padding from the wrapper */
+            }
+            /* Watermark for print only */
+            #print-watermark {
+                display: block !important;
+                position: fixed;
+                bottom: 1cm;
+                right: 1cm;
+                font-size: 10px;
+                color: rgba(0, 0, 0, 0.2);
+            }
+        }
+        
+        /* Hide watermark on screen */
+        #print-watermark {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 sm:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Section -->
+        <header class="mb-8 text-center print-hidden">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-gray-700 to-gray-900">
+                Financial Statement Generator
+            </h1>
+            <p class="text-gray-600 text-lg">
+                Input your data to generate Profit & Loss, Cash Flow, and Balance Sheet statements.
+            </p>
+        </header>
+
+        <!-- Input Form Section -->
+        <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-gray-200 print-hidden">
+            <form id="financial-data-form">
+                <h2 class="text-2xl font-bold mb-4 text-gray-900">Input Data</h2>
+                
+                <!-- P&L Data Section -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">Profit & Loss Statement (Income Statement)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label for="revenue" class="text-gray-600">Total Revenue</label>
+                            <input type="number" id="revenue" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 50000" value="50000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="cogs" class="text-gray-600">Cost of Goods Sold (COGS)</label>
+                            <input type="number" id="cogs" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 20000" value="20000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="salaries" class="text-gray-600">Salaries & Wages</label>
+                            <input type="number" id="salaries" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 10000" value="10000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="rent" class="text-gray-600">Rent Expense</label>
+                            <input type="number" id="rent" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 5000" value="5000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="utilities" class="text-gray-600">Utilities</label>
+                            <input type="number" id="utilities" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 2000" value="2000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="interest" class="text-gray-600">Interest Expense</label>
+                            <input type="number" id="interest" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 1000" value="1000">
+                        </div>
+                    </div>
+                    <!-- Dynamic Other Expenses Section -->
+                    <div class="mt-4">
+                        <div class="flex items-center mb-2">
+                            <h4 class="text-lg font-medium text-gray-700 mr-2">Other Expenses</h4>
+                            <button type="button" id="add-expense-btn" class="flex items-center justify-center w-8 h-8 rounded-full text-white bg-gray-800 hover:bg-gray-900 transition-colors">
+                                <!-- Plus icon SVG -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="other-expenses-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Dynamic expense inputs will be added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cash Flow Data Section -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">Cash Flow Statement</h3>
+                    <p class="text-gray-500 mb-2 text-sm italic">
+                        Note: Cash Flow calculations are based on P&L data plus changes in balance sheet accounts.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label for="ar-change" class="text-gray-600">Change in Accounts Receivable</label>
+                            <input type="number" id="ar-change" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Increase: positive, Decrease: negative" value="1000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="inventory-change" class="text-gray-600">Change in Inventory</label>
+                            <input type="number" id="inventory-change" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Increase: positive, Decrease: negative" value="500">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="ap-change" class="text-gray-600">Change in Accounts Payable</label>
+                            <input type="number" id="ap-change" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Increase: positive, Decrease: negative" value="800">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="asset-purchase" class="text-gray-600">Purchase of Assets</label>
+                            <input type="number" id="asset-purchase" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 15000" value="15000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="loan-proceeds" class="text-gray-600">Proceeds from Loans</label>
+                            <input type="number" id="loan-proceeds" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 10000" value="10000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="loan-repayment" class="text-gray-600">Repayment of Loans</label>
+                            <input type="number" id="loan-repayment" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 2000" value="2000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="initial-cash" class="text-gray-600">Beginning Cash Balance</label>
+                            <input type="number" id="initial-cash" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 5000" value="5000">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Balance Sheet Data Section -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">Balance Sheet</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <label for="bs-cash" class="text-gray-600">Cash</label>
+                            <input type="number" id="bs-cash" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Calculated from Cash Flow" disabled>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="accounts-receivable" class="text-gray-600">Accounts Receivable</label>
+                            <input type="number" id="accounts-receivable" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 10000" value="10000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="inventory" class="text-gray-600">Inventory</label>
+                            <input type="number" id="inventory" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 5000" value="5000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="fixed-assets" class="text-gray-600">Fixed Assets</label>
+                            <input type="number" id="fixed-assets" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 40000" value="40000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="accounts-payable" class="text-gray-600">Accounts Payable</label>
+                            <input type="number" id="accounts-payable" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 8000" value="8000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="long-term-debt" class="text-gray-600">Long-Term Debt</label>
+                            <input type="number" id="long-term-debt" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 15000" value="15000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="common-stock" class="text-gray-600">Common Stock</label>
+                            <input type="number" id="common-stock" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="e.g., 20000" value="20000">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="retained-earnings" class="text-gray-600">Retained Earnings</label>
+                            <input type="number" id="retained-earnings" class="mt-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Calculated from P&L" disabled>
+                        </div>
+                    </div>
+                    <!-- Dynamic Other Current Assets Section -->
+                    <div class="mt-4">
+                        <div class="flex items-center mb-2">
+                            <h4 class="text-lg font-medium text-gray-700 mr-2">Other Current Assets</h4>
+                            <button type="button" id="add-asset-btn" class="flex items-center justify-center w-8 h-8 rounded-full text-white bg-gray-800 hover:bg-gray-900 transition-colors">
+                                <!-- Plus icon SVG -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="other-assets-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Dynamic asset inputs will be added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+                    <button type="button" id="generate-btn"
+                            class="flex-shrink-0 px-6 py-3 text-lg font-semibold text-white bg-gray-800 rounded-full shadow-lg hover:bg-gray-900 transition-transform transform hover:scale-105">
+                        Generate Statements
+                    </button>
+                    <button type="button" id="reset-btn"
+                            class="flex-shrink-0 px-6 py-3 text-lg font-semibold text-gray-800 bg-gray-200 rounded-full shadow-lg hover:bg-gray-300 transition-transform transform hover:scale-105">
+                        Reset Form
+                    </button>
+                    <!-- The print button is now disabled by default and enabled after generation -->
+                    <button type="button" id="print-pdf-btn" disabled
+                            class="flex-shrink-0 px-6 py-3 text-lg font-semibold text-white bg-gray-800 rounded-full shadow-lg hover:bg-gray-900 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        Print to PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Output Statements Section -->
+        <div id="statements-output" class="hidden mt-8 statements-output-wrapper">
+            <!-- This heading and the buttons below are now hidden on print with a new specific class -->
+            <h2 class="text-3xl font-bold mb-6 text-center text-gray-900 print-hide-header">Statements</h2>
+            
+            <!-- View Buttons container is now hidden on print -->
+            <div class="flex flex-wrap justify-center gap-4 mb-8 print-hide-header">
+                <button id="view-all-btn" class="px-6 py-2 rounded-full font-semibold bg-gray-800 text-white hover:bg-gray-700">View All</button>
+                <button id="view-pnl-btn" class="px-6 py-2 rounded-full font-semibold bg-gray-200 hover:bg-gray-300">P&L</button>
+                <button id="view-cashflow-btn" class="px-6 py-2 rounded-full font-semibold bg-gray-200 hover:bg-gray-300">Cash Flow</button>
+                <button id="view-balance-sheet-btn" class="px-6 py-2 rounded-full font-semibold bg-gray-200 hover:bg-gray-300">Balance Sheet</button>
+            </div>
+
+            <!-- Profit & Loss Statement -->
+            <div id="pnl-statement" class="statement-section">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700">Profit & Loss Statement</h3>
+                <table class="w-full statement-table">
+                    <thead>
+                        <tr>
+                            <th class="w-2/3 text-left">Description</th>
+                            <th class="w-1/3 text-right">Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pnl-body">
+                        <!-- P&L content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Cash Flow Statement -->
+            <div id="cashflow-statement" class="statement-section">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700">Cash Flow Statement</h3>
+                <table class="w-full statement-table">
+                    <thead>
+                        <tr>
+                            <th class="w-2/3 text-left">Description</th>
+                            <th class="w-1/3 text-right">Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cashflow-body">
+                        <!-- Cash Flow content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Balance Sheet -->
+            <div id="balance-sheet" class="statement-section">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700">Balance Sheet</h3>
+                <table class="w-full statement-table">
+                    <thead>
+                        <tr>
+                            <th class="w-2/3 text-left">Description</th>
+                            <th class="w-1/3 text-right">Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="balance-sheet-body">
+                        <!-- Balance Sheet content will be inserted here -->
+                    </tbody>
+                </table>
+                <div id="balance-sheet-check" class="mt-4 p-4 rounded-lg font-semibold"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom message box for alerts -->
+    <div id="message-box-overlay" class="message-box-overlay hidden">
+        <div class="bg-white rounded-xl p-6 shadow-2xl max-w-sm w-full mx-4 text-center">
+            <p id="message-box-text" class="text-gray-800 text-lg font-medium mb-4"></p>
+            <button id="message-box-close-btn" class="px-6 py-2 rounded-full font-semibold text-white bg-gray-800 hover:bg-gray-900 transition-colors">OK</button>
+        </div>
+    </div>
+    
+    <!-- Watermark for Print only -->
+    <div id="print-watermark">
+        Generated by Financial Statement Generator
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('financial-data-form');
+            const generateBtn = document.getElementById('generate-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const printPdfBtn = document.getElementById('print-pdf-btn');
+            const statementsOutput = document.getElementById('statements-output');
+            
+            const viewAllBtn = document.getElementById('view-all-btn');
+            const viewPnlBtn = document.getElementById('view-pnl-btn');
+            const viewCashflowBtn = document.getElementById('view-cashflow-btn');
+            const viewBalanceSheetBtn = document.getElementById('view-balance-sheet-btn');
+
+            const pnlStatement = document.getElementById('pnl-statement');
+            const cashflowStatement = document.getElementById('cashflow-statement');
+            const balanceSheetStatement = document.getElementById('balance-sheet');
+
+            const pnlBody = document.getElementById('pnl-body');
+            const cashflowBody = document.getElementById('cashflow-body');
+            const balanceSheetBody = document.getElementById('balance-sheet-body');
+            const balanceSheetCheck = document.getElementById('balance-sheet-check');
+            
+            const bsCashInput = document.getElementById('bs-cash');
+            const retainedEarningsInput = document.getElementById('retained-earnings');
+
+            const addExpenseBtn = document.getElementById('add-expense-btn');
+            const otherExpensesContainer = document.getElementById('other-expenses-container');
+            const addAssetBtn = document.getElementById('add-asset-btn');
+            const otherAssetsContainer = document.getElementById('other-assets-container');
+            
+            const messageBoxOverlay = document.getElementById('message-box-overlay');
+            const messageBoxText = document.getElementById('message-box-text');
+            const messageBoxCloseBtn = document.getElementById('message-box-close-btn');
+
+            // Helper function to get number value from an input
+            const getInputValue = (element) => parseFloat(element.value) || 0;
+            
+            // Function to show custom message box
+            const showMessage = (message) => {
+                messageBoxText.textContent = message;
+                messageBoxOverlay.classList.remove('hidden');
+            };
+            
+            // Function to hide custom message box
+            const hideMessage = () => {
+                messageBoxOverlay.classList.add('hidden');
+            };
+
+            // Function to handle showing/hiding statements
+            const showStatements = (pnlVisible, cashflowVisible, balanceSheetVisible) => {
+                pnlStatement.classList.toggle('hidden', !pnlVisible);
+                cashflowStatement.classList.toggle('hidden', !cashflowVisible);
+                balanceSheetStatement.classList.toggle('hidden', !balanceSheetVisible);
+                statementsOutput.classList.remove('hidden');
+            };
+
+            // Function to update active button styles
+            const setActiveButton = (activeBtn) => {
+                [viewAllBtn, viewPnlBtn, viewCashflowBtn, viewBalanceSheetBtn].forEach(btn => {
+                    if (btn === activeBtn) {
+                        btn.classList.add('bg-gray-800', 'text-white');
+                        btn.classList.remove('bg-gray-200', 'text-gray-800');
+                    } else {
+                        btn.classList.remove('bg-gray-800', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-800');
+                    }
+                });
+            };
+
+            // Function to add a dynamic input field for expenses
+            const addExpenseField = (name = '', value = '') => {
+                const newField = document.createElement('div');
+                newField.className = 'flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mt-2';
+                newField.innerHTML = `
+                    <div class="flex-grow flex items-center space-x-2">
+                        <input type="text" class="w-1/2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Expense Name" value="${name}">
+                        <input type="number" class="expense-value w-1/2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Amount" value="${value}">
+                    </div>
+                    <button type="button" class="remove-btn text-gray-500 hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                `;
+                otherExpensesContainer.appendChild(newField);
+                newField.querySelector('.remove-btn').addEventListener('click', () => newField.remove());
+            };
+
+            // Function to add a dynamic input field for assets
+            const addAssetField = (name = '', value = '') => {
+                const newField = document.createElement('div');
+                newField.className = 'flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mt-2';
+                newField.innerHTML = `
+                    <div class="flex-grow flex items-center space-x-2">
+                        <input type="text" class="w-1/2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Asset Name" value="${name}">
+                        <input type="number" class="asset-value w-1/2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Amount" value="${value}">
+                    </div>
+                    <button type="button" class="remove-btn text-gray-500 hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                `;
+                otherAssetsContainer.appendChild(newField);
+                newField.querySelector('.remove-btn').addEventListener('click', () => newField.remove());
+            };
+
+            // Function to generate the statements
+            const generateStatements = () => {
+                // Get all input values
+                const revenue = getInputValue(document.getElementById('revenue'));
+                const cogs = getInputValue(document.getElementById('cogs'));
+                const salaries = getInputValue(document.getElementById('salaries'));
+                const rent = getInputValue(document.getElementById('rent'));
+                const utilities = getInputValue(document.getElementById('utilities'));
+                const interest = getInputValue(document.getElementById('interest'));
+
+                // Sum all dynamic expenses
+                let otherExpenses = 0;
+                const dynamicExpenses = [];
+                otherExpensesContainer.querySelectorAll('.expense-value').forEach(input => {
+                    const nameInput = input.previousElementSibling;
+                    const value = getInputValue(input);
+                    if (nameInput.value && !isNaN(value)) {
+                        dynamicExpenses.push({ name: nameInput.value, value });
+                        otherExpenses += value;
+                    }
+                });
+                
+                const arChange = getInputValue(document.getElementById('ar-change'));
+                const inventoryChange = getInputValue(document.getElementById('inventory-change'));
+                const apChange = getInputValue(document.getElementById('ap-change'));
+                const assetPurchase = getInputValue(document.getElementById('asset-purchase'));
+                const loanProceeds = getInputValue(document.getElementById('loan-proceeds'));
+                const loanRepayment = getInputValue(document.getElementById('loan-repayment'));
+                const initialCash = getInputValue(document.getElementById('initial-cash'));
+
+                const beginningAccountsReceivable = getInputValue(document.getElementById('accounts-receivable')) - arChange;
+                const beginningInventory = getInputValue(document.getElementById('inventory')) - inventoryChange;
+                const beginningAccountsPayable = getInputValue(document.getElementById('accounts-payable')) - apChange;
+                const accountsReceivable = getInputValue(document.getElementById('accounts-receivable'));
+                const inventory = getInputValue(document.getElementById('inventory'));
+                
+                // Sum all dynamic assets
+                let otherAssets = 0;
+                const dynamicAssets = [];
+                otherAssetsContainer.querySelectorAll('.asset-value').forEach(input => {
+                    const nameInput = input.previousElementSibling;
+                    const value = getInputValue(input);
+                    if (nameInput.value && !isNaN(value)) {
+                        dynamicAssets.push({ name: nameInput.value, value });
+                        otherAssets += value;
+                    }
+                });
+                
+                const fixedAssets = getInputValue(document.getElementById('fixed-assets'));
+                const accountsPayable = getInputValue(document.getElementById('accounts-payable'));
+                const longTermDebt = getInputValue(document.getElementById('long-term-debt'));
+                const commonStock = getInputValue(document.getElementById('common-stock'));
+                const beginningRetainedEarnings = getInputValue(document.getElementById('retained-earnings')); // Use this as starting point for cumulative calc
+
+                // --- P&L Statement Calculations ---
+                const grossProfit = revenue - cogs;
+                const totalOperatingExpenses = salaries + rent + utilities + otherExpenses;
+                const ebit = grossProfit - totalOperatingExpenses;
+                const netIncome = ebit - interest;
+                
+                // Update retained earnings in input field
+                const endingRetainedEarnings = beginningRetainedEarnings + netIncome;
+                retainedEarningsInput.value = endingRetainedEarnings.toFixed(2);
+
+                // --- Cash Flow Statement Calculations (Indirect Method) ---
+                const cfo = netIncome - arChange - inventoryChange + apChange; // CFO adjustments from Net Income
+                const cfi = assetPurchase * -1; // Investing activities
+                const cff = loanProceeds - loanRepayment; // Financing activities
+                const netChangeInCash = cfo + cfi + cff;
+                const endingCash = initialCash + netChangeInCash;
+                
+                // Update cash balance in balance sheet input field
+                bsCashInput.value = endingCash.toFixed(2);
+                const bsCash = endingCash;
+
+                // --- Balance Sheet Calculations ---
+                const totalCurrentAssets = bsCash + accountsReceivable + inventory + otherAssets;
+                const totalAssets = totalCurrentAssets + fixedAssets;
+                const totalCurrentLiabilities = accountsPayable;
+                const totalLiabilities = totalCurrentLiabilities + longTermDebt;
+                const totalEquity = commonStock + endingRetainedEarnings;
+                const totalLiabilitiesAndEquity = totalLiabilities + totalEquity;
+
+                // --- Render Statements to the DOM ---
+                // P&L
+                let pnlContent = `
+                    <tr class="text-gray-900 border-b">
+                        <td class="font-bold">Total Revenue</td>
+                        <td class="text-right font-bold">${revenue.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Cost of Goods Sold (COGS)</td>
+                        <td class="text-right">(${cogs.toFixed(2)})</td>
+                    </tr>
+                    <tr class="text-gray-900 border-b-2 font-bold">
+                        <td>Gross Profit</td>
+                        <td class="text-right">${grossProfit.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Salaries & Wages</td>
+                        <td class="text-right">(${salaries.toFixed(2)})</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Rent Expense</td>
+                        <td class="text-right">(${rent.toFixed(2)})</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Utilities</td>
+                        <td class="text-right">(${utilities.toFixed(2)})</td>
+                    </tr>
+                `;
+                dynamicExpenses.forEach(exp => {
+                    pnlContent += `
+                        <tr class="text-gray-700">
+                            <td class="pl-4">${exp.name}</td>
+                            <td class="text-right">(${exp.value.toFixed(2)})</td>
+                        </tr>
+                    `;
+                });
+                pnlContent += `
+                    <tr class="text-gray-900 border-b-2 font-bold">
+                        <td>Operating Income (EBIT)</td>
+                        <td class="text-right">${ebit.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Interest Expense</td>
+                        <td class="text-right">(${interest.toFixed(2)})</td>
+                    </tr>
+                    <tr class="text-gray-900 font-bold bg-gray-100">
+                        <td>Net Income</td>
+                        <td class="text-right">${netIncome.toFixed(2)}</td>
+                    </tr>
+                `;
+                pnlBody.innerHTML = pnlContent;
+
+                // Cash Flow
+                const cashflowContent = `
+                    <tr class="text-gray-900 border-b-2 font-bold">
+                        <td>Cash Flow from Operations</td>
+                        <td class="text-right">${cfo.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Net Income</td>
+                        <td class="text-right">${netIncome.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Decrease/(Increase) in Accounts Receivable</td>
+                        <td class="text-right">${(-arChange).toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Decrease/(Increase) in Inventory</td>
+                        <td class="text-right">${(-inventoryChange).toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700 border-b-2">
+                        <td class="pl-4">Increase/(Decrease) in Accounts Payable</td>
+                        <td class="text-right">${(apChange).toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-900 border-b-2 font-bold">
+                        <td>Cash Flow from Investing</td>
+                        <td class="text-right">${cfi.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Purchase of Assets</td>
+                        <td class="text-right">(${assetPurchase.toFixed(2)})</td>
+                    </tr>
+                    <tr class="text-gray-900 border-b-2 font-bold">
+                        <td>Cash Flow from Financing</td>
+                        <td class="text-right">${cff.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Proceeds from Loans</td>
+                        <td class="text-right">${loanProceeds.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Repayment of Loans</td>
+                        <td class="text-right">(${loanRepayment.toFixed(2)})</td>
+                    </tr>
+                    <tr class="text-gray-900 font-bold border-t-2 mt-2">
+                        <td>Net Change in Cash</td>
+                        <td class="text-right">${netChangeInCash.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-900">
+                        <td>Beginning Cash Balance</td>
+                        <td class="text-right">${initialCash.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-900 font-bold bg-gray-100">
+                        <td>Ending Cash Balance</td>
+                        <td class="text-right">${endingCash.toFixed(2)}</td>
+                    </tr>
+                `;
+                cashflowBody.innerHTML = cashflowContent;
+
+
+                // Balance Sheet
+                let balanceSheetContent = `
+                    <tr class="text-gray-900 font-bold">
+                        <td>Total Assets</td>
+                        <td class="text-right">${totalAssets.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Cash</td>
+                        <td class="text-right">${bsCash.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Accounts Receivable</td>
+                        <td class="text-right">${accountsReceivable.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Inventory</td>
+                        <td class="text-right">${inventory.toFixed(2)}</td>
+                    </tr>
+                `;
+                dynamicAssets.forEach(asset => {
+                    balanceSheetContent += `
+                        <tr class="text-gray-700">
+                            <td class="pl-4">${asset.name}</td>
+                            <td class="text-right">${asset.value.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                balanceSheetContent += `
+                    <tr class="text-gray-700 border-b-2">
+                        <td class="pl-4">Fixed Assets</td>
+                        <td class="text-right">${fixedAssets.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-900 font-bold">
+                        <td>Total Liabilities & Equity</td>
+                        <td class="text-right">${totalLiabilitiesAndEquity.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Accounts Payable</td>
+                        <td class="text-right">${accountsPayable.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700 border-b-2">
+                        <td class="pl-4">Long-Term Debt</td>
+                        <td class="text-right">${longTermDebt.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-900 font-bold border-b-2">
+                        <td>Total Equity</td>
+                        <td class="text-right">${totalEquity.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Common Stock</td>
+                        <td class="text-right">${commonStock.toFixed(2)}</td>
+                    </tr>
+                    <tr class="text-gray-700">
+                        <td class="pl-4">Retained Earnings</td>
+                        <td class="text-right">${endingRetainedEarnings.toFixed(2)}</td>
+                    </tr>
+                `;
+                balanceSheetBody.innerHTML = balanceSheetContent;
+
+                // Check and display balance sheet equality
+                if (Math.abs(totalAssets - totalLiabilitiesAndEquity) < 0.01) {
+                    balanceSheetCheck.textContent = 'Balance Sheet is in balance!';
+                    balanceSheetCheck.classList.add('bg-green-100', 'text-green-800');
+                    balanceSheetCheck.classList.remove('bg-red-100', 'text-red-800');
+                } else {
+                    balanceSheetCheck.textContent = `Balance Sheet is out of balance. Difference: ${ (totalAssets - totalLiabilitiesAndEquity).toFixed(2) }`;
+                    balanceSheetCheck.classList.add('bg-red-100', 'text-red-800');
+                    balanceSheetCheck.classList.remove('bg-green-100', 'text-green-800');
+                }
+
+                // Show output section and enable print button
+                statementsOutput.classList.remove('hidden');
+                printPdfBtn.disabled = false;
+            };
+
+            // --- Event Listeners ---
+            generateBtn.addEventListener('click', generateStatements);
+            
+            resetBtn.addEventListener('click', () => {
+                form.reset();
+                otherExpensesContainer.innerHTML = '';
+                otherAssetsContainer.innerHTML = '';
+                statementsOutput.classList.add('hidden');
+                printPdfBtn.disabled = true;
+                bsCashInput.value = '';
+                retainedEarningsInput.value = '';
+                setActiveButton(viewAllBtn);
+            });
+            
+            printPdfBtn.addEventListener('click', () => {
+                window.print();
+            });
+
+            addExpenseBtn.addEventListener('click', () => addExpenseField());
+            addAssetBtn.addEventListener('click', () => addAssetField());
+            
+            messageBoxCloseBtn.addEventListener('click', hideMessage);
+
+            // Statement view buttons
+            viewAllBtn.addEventListener('click', () => {
+                showStatements(true, true, true);
+                setActiveButton(viewAllBtn);
+            });
+            viewPnlBtn.addEventListener('click', () => {
+                showStatements(true, false, false);
+                setActiveButton(viewPnlBtn);
+            });
+            viewCashflowBtn.addEventListener('click', () => {
+                showStatements(false, true, false);
+                setActiveButton(viewCashflowBtn);
+            });
+            viewBalanceSheetBtn.addEventListener('click', () => {
+                showStatements(false, false, true);
+                setActiveButton(viewBalanceSheetBtn);
+            });
+        });
+    </script>
+</body>
+</html>
