@@ -11,10 +11,12 @@
             font-family: 'Inter', sans-serif;
             background-color: #f9fafb;
             display: flex;
+            flex-direction: column; /* Use column to stack calculator and button */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
+            position: relative; /* Needed for positioning the absolute button */
         }
         .calculator-container {
             background-color: #ffffff;
@@ -66,6 +68,14 @@
     </style>
 </head>
 <body>
+    
+    <!-- Go Back Button is now at the top-left -->
+    <a href="https://yeamin710.github.io/freebiztools/index.html"
+       class="absolute top-4 left-4 inline-block bg-gray-800 text-white py-2 px-4 rounded-md font-semibold
+              hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
+              focus:ring-gray-700 focus:ring-offset-2">
+        Back to Home
+    </a>
 
     <div class="calculator-container">
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Salary After Tax Calculator</h2>
@@ -147,7 +157,7 @@
             <!-- Error message will be dynamically set by JS -->
         </div>
     </div>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const simpleModeRadio = document.getElementById('simpleMode');
@@ -398,6 +408,5 @@
             });
         });
     </script>
-
 </body>
 </html>
