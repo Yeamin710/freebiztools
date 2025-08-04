@@ -6,6 +6,8 @@
     <title>Budget Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- jspdf library for generating PDF files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -91,10 +93,10 @@
 </head>
 <body>
 
-     <a href="https://yeamin710.github.io/freebiztools/index.html"
+    <a href="https://yeamin710.github.io/freebiztools/index.html"
        class="absolute top-4 left-4 inline-block bg-gray-800 text-white py-2 px-4 rounded-md font-semibold
-              hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
-              focus:ring-gray-700 focus:ring-offset-2">
+               hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
+               focus:ring-gray-700 focus:ring-offset-2">
         Back to Home
     </a>
     
@@ -260,6 +262,18 @@
             <p class="text-gray-700 text-lg font-bold mb-4">Net Balance: <span id="displayNetBalance" class=""></span></p>
 
             <canvas id="budgetChart" class="mt-6"></canvas>
+            
+            <!-- Download Buttons -->
+            <div class="flex space-x-4 mt-6">
+                <!-- Updated button to use grey theme, with icon removed -->
+                <button id="downloadPdfBtn" class="flex-1 bg-gray-800 text-white py-2 rounded-md font-semibold hover:bg-gray-700 transition duration-200">
+                    Download PDF
+                </button>
+                <!-- Updated button to use light grey theme, with icon removed -->
+                <button id="downloadCsvBtn" class="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md font-semibold hover:bg-gray-300 transition duration-200">
+                    Download CSV
+                </button>
+            </div>
 
             <p class="text-gray-500 text-sm mt-4">
                 <span class="font-bold text-red-600">Disclaimer:</span> This budget planner is a tool for estimation and planning. Actual income and expenses may vary. It's recommended to regularly review and adjust your budget based on your financial habits.
@@ -283,6 +297,8 @@
             const displayNetBalance = document.getElementById('displayNetBalance');
             const errorMessageDiv = document.getElementById('errorMessage');
             const budgetChartCanvas = document.getElementById('budgetChart');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const downloadCsvBtn = document.getElementById('downloadCsvBtn');
             const ctx = budgetChartCanvas.getContext('2d');
 
             // Colors for the pie chart slices
@@ -419,6 +435,7 @@
 
                 let totalExpenses = 0;
                 const expenseDataForChart = []; // To store data for the pie chart
+                const expenseDetails = []; // To store data for CSV/PDF details
 
                 let isValidExpenses = true;
                 document.querySelectorAll('.expense-category').forEach(categoryDiv => {
@@ -427,12 +444,14 @@
                     categoryDiv.querySelectorAll('.expense-item').forEach(itemDiv => {
                         // Treat empty amount as 0
                         const expenseAmount = parseFloat(itemDiv.querySelector('.expense-amount').value || '0');
+                        const expenseName = itemDiv.querySelector('.expense-name').value || 'Unnamed Item';
 
                         if (isNaN(expenseAmount) || expenseAmount < 0) {
                             isValidExpenses = false;
                             return;
                         }
                         categoryTotal += expenseAmount;
+                        expenseDetails.push({ category: categoryName, name: expenseName, amount: expenseAmount });
                     });
                     if (!isValidExpenses) return; // Stop if any invalid expense found
 
@@ -473,7 +492,165 @@
                 drawBudgetChart(expenseDataForChart);
             };
 
+            // Function to get all budget data from the form
+            const getBudgetData = () => {
+                const monthlyIncome = parseFloat(monthlyIncomeInput.value) || 0;
+                let totalExpenses = 0;
+                const expenseCategories = {};
+                const expenseDetails = [];
+
+                document.querySelectorAll('.expense-category').forEach(categoryDiv => {
+                    const categoryName = categoryDiv.dataset.category;
+                    expenseCategories[categoryName] = [];
+                    categoryDiv.querySelectorAll('.expense-item').forEach(itemDiv => {
+                        const expenseName = itemDiv.querySelector('.expense-name').value || 'Unnamed Item';
+                        const expenseAmount = parseFloat(itemDiv.querySelector('.expense-amount').value || '0');
+                        if (expenseAmount > 0) {
+                            expenseCategories[categoryName].push({ name: expenseName, amount: expenseAmount });
+                            totalExpenses += expenseAmount;
+                            expenseDetails.push({ category: categoryName, name: expenseName, amount: expenseAmount });
+                        }
+                    });
+                });
+                
+                const netBalance = monthlyIncome - totalExpenses;
+                
+                return { monthlyIncome, totalExpenses, netBalance, expenseDetails, expenseCategories };
+            };
+
+            // Function to download data as a CSV file
+            const downloadCSV = () => {
+                const data = getBudgetData();
+                if (resultsDiv.classList.contains('hidden')) {
+                    // Replaced alert with a custom message box
+                    const messageBox = document.createElement('div');
+                    messageBox.innerHTML = `
+                        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                                <div class="mt-3 text-center">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Download Error</h3>
+                                    <div class="mt-2 px-7 py-3">
+                                        <p class="text-sm text-gray-500">Please calculate the budget first before downloading.</p>
+                                    </div>
+                                    <div class="items-center px-4 py-3">
+                                        <button id="closeMessageBox" class="px-4 py-2 bg-gray-800 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                            OK
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(messageBox);
+                    document.getElementById('closeMessageBox').addEventListener('click', () => {
+                        messageBox.remove();
+                    });
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Budget Summary\n";
+                csvContent += "Monthly Income," + data.monthlyIncome + "\n";
+                csvContent += "Total Expenses," + data.totalExpenses + "\n";
+                csvContent += "Net Balance," + data.netBalance + "\n\n";
+
+                csvContent += "Detailed Expenses\n";
+                csvContent += "Category,Item,Amount\n";
+
+                data.expenseDetails.forEach(item => {
+                    csvContent += `"${item.category}","${item.name}",${item.amount}\n`;
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "budget-summary.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            // Function to download data as a PDF file
+            const downloadPDF = () => {
+                const { jsPDF } = window.jspdf;
+                const data = getBudgetData();
+                if (resultsDiv.classList.contains('hidden')) {
+                    // Replaced alert with a custom message box
+                    const messageBox = document.createElement('div');
+                    messageBox.innerHTML = `
+                        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                                <div class="mt-3 text-center">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">Download Error</h3>
+                                    <div class="mt-2 px-7 py-3">
+                                        <p class="text-sm text-gray-500">Please calculate the budget first before downloading.</p>
+                                    </div>
+                                    <div class="items-center px-4 py-3">
+                                        <button id="closeMessageBox" class="px-4 py-2 bg-gray-800 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                            OK
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(messageBox);
+                    document.getElementById('closeMessageBox').addEventListener('click', () => {
+                        messageBox.remove();
+                    });
+                    return;
+                }
+
+                const doc = new jsPDF();
+                let yPosition = 20;
+
+                // Title
+                doc.setFontSize(22);
+                doc.text("Budget Planner Summary", 105, yPosition, null, null, "center");
+                yPosition += 15;
+
+                // Summary Data
+                doc.setFontSize(14);
+                doc.text(`Monthly Income: ${formatCurrency(data.monthlyIncome)}`, 20, yPosition);
+                yPosition += 10;
+                doc.text(`Total Expenses: ${formatCurrency(data.totalExpenses)}`, 20, yPosition);
+                yPosition += 10;
+                doc.text(`Net Balance: ${formatCurrency(data.netBalance)}`, 20, yPosition);
+                yPosition += 20;
+
+                // Detailed Expenses as a table
+                doc.setFontSize(16);
+                doc.text("Detailed Expenses", 20, yPosition);
+                yPosition += 10;
+
+                const tableData = [
+                    ['Category', 'Item', 'Amount ($)']
+                ];
+                data.expenseDetails.forEach(item => {
+                    tableData.push([item.category, item.name, item.amount.toFixed(2)]);
+                });
+                
+                doc.autoTable({
+                    startY: yPosition,
+                    head: [tableData[0]],
+                    body: tableData.slice(1)
+                });
+                yPosition = doc.lastAutoTable.finalY + 20;
+
+                // Add chart to PDF
+                doc.setFontSize(16);
+                doc.text("Expense Breakdown Chart", 20, yPosition);
+                yPosition += 5;
+                const chartImage = budgetChartCanvas.toDataURL('image/png');
+                doc.addImage(chartImage, 'PNG', 20, yPosition, 160, 100);
+
+                doc.save("budget-summary.pdf");
+            };
+
+
             calculateBtn.addEventListener('click', calculateBudget);
+            downloadCsvBtn.addEventListener('click', downloadCSV);
+            downloadPdfBtn.addEventListener('click', downloadPDF);
 
             resetBtn.addEventListener('click', () => {
                 monthlyIncomeInput.value = '';
@@ -507,5 +684,7 @@
         });
     </script>
 
+    <!-- Required for jsPDF autoTable plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
