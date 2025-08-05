@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management Tool</title>
+    <!-- Inter Font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        /* Custom styling for the low stock warning to fit the light theme */
+        .low-stock-warning {
+            background-color: #fee2e2; /* Light red */
+        }
+    </style>
+</head>
+<!-- The body now uses a clean, light grey theme without a dark mode toggle -->
+<body class="bg-gray-200 text-gray-900 min-h-screen p-4 flex items-center justify-center">
+
+    <!-- The main container uses a light gray background to create a content area -->
+    <div class="container max-w-6xl mx-auto space-y-8 p-6 lg:p-12 bg-white rounded-2xl shadow-xl animate-fadeIn">
+        <header class="text-center">
+            <h1 class="text-4xl lg:text-5xl font-bold text-gray-900">Inventory Management</h1>
+            <p class="mt-2 text-gray-700">Track and manage your products with ease.</p>
+        </header>
+
+        <!-- Inventory Summary Section has been made darker -->
+        <section class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300">
+            <h2 class="text-2xl font-semibold text-gray-800">Inventory Summary</h2>
+            <div class="mt-4 flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+                <span class="text-lg font-medium text-gray-700">Total Inventory Value:</span>
+                <span id="total-inventory-value" class="text-2xl font-bold text-gray-800">$0.00</span>
+            </div>
+        </section>
+
+        <!-- Add New Item Form Section has been made darker -->
+        <section class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300">
+            <h2 class="text-2xl font-semibold text-gray-800">Add New Item</h2>
+            <form id="inventory-form" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Input fields now use a light grey background -->
+                <input type="text" id="product-name" placeholder="Product Name" required
+                    class="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <input type="text" id="product-sku" placeholder="SKU" required
+                    class="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <input type="number" id="product-quantity" placeholder="Quantity" min="0" required
+                    class="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <input type="number" id="product-price" placeholder="Price" min="0" step="0.01" required
+                    class="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <input type="number" id="low-stock-threshold" placeholder="Low Stock Threshold" min="0" value="5" required
+                    class="w-full px-4 py-2 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <div class="md:col-span-2 lg:col-span-5 flex justify-end">
+                    <!-- The button is now dark grey to fit the new theme -->
+                    <button type="submit"
+                        class="px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i>Add Item
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Inventory List Section has been made darker -->
+        <section class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 md:mb-0">Current Inventory</h2>
+                <div class="relative w-full md:w-1/3">
+                    <input type="text" id="search-input" placeholder="Search by name or SKU..."
+                        class="w-full pl-10 pr-4 py-2 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table id="inventory-table" class="min-w-full divide-y divide-gray-300">
+                    <!-- Table header uses a medium gray background -->
+                    <thead class="bg-gray-300">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Product Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">SKU</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <!-- Table body and rows now use a white background with gray text -->
+                    <tbody class="bg-white divide-y divide-gray-200" id="inventory-list">
+                        <!-- Inventory items will be inserted here by JavaScript -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No items in inventory.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden modal opacity-0">
+            <!-- Modal content uses a light grey background -->
+            <div class="bg-gray-200 p-8 rounded-xl shadow-lg w-full max-w-sm transform transition-transform scale-95">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Confirm Deletion</h3>
+                <p class="text-gray-700 mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
+                <div class="flex justify-end gap-3">
+                    <button id="cancel-delete-btn" class="px-4 py-2 text-gray-700 bg-gray-300 rounded-lg hover:bg-gray-400">Cancel</button>
+                    <!-- Delete button remains red for high visibility -->
+                    <button id="confirm-delete-btn" class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700">Delete</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- JavaScript remains unchanged as the request was only for theme changes ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('inventory-form');
+            const inventoryList = document.getElementById('inventory-list');
+            const searchInput = document.getElementById('search-input');
+            const totalInventoryValueEl = document.getElementById('total-inventory-value');
+            const deleteModal = document.getElementById('delete-modal');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+            let inventory = [];
+            let itemToDeleteId = null;
+
+            // Load inventory from localStorage on page load
+            const loadInventory = () => {
+                const storedInventory = localStorage.getItem('inventory');
+                if (storedInventory) {
+                    try {
+                        inventory = JSON.parse(storedInventory);
+                    } catch (e) {
+                        console.error('Failed to parse inventory from localStorage:', e);
+                        inventory = [];
+                    }
+                }
+                renderInventory();
+            };
+
+            // Save inventory to localStorage
+            const saveInventory = () => {
+                localStorage.setItem('inventory', JSON.stringify(inventory));
+            };
+
+            // Calculate the total inventory value
+            const calculateTotalValue = (items) => {
+                return items.reduce((total, item) => total + (item.quantity * item.price), 0);
+            };
+
+            // Render the inventory table and summary
+            const renderInventory = (filteredInventory = inventory) => {
+                inventoryList.innerHTML = ''; // Clear existing list
+                
+                const totalValue = calculateTotalValue(inventory);
+                totalInventoryValueEl.textContent = `$${totalValue.toFixed(2)}`;
+
+                if (filteredInventory.length === 0) {
+                    const noItemsRow = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No items found.</td>
+                        </tr>
+                    `;
+                    inventoryList.innerHTML = noItemsRow;
+                    return;
+                }
+
+                filteredInventory.forEach(item => {
+                    const isLowStock = item.quantity <= item.lowStockThreshold;
+                    const rowClass = isLowStock ? 'low-stock-warning' : '';
+                    const warningIcon = isLowStock ? 
+                        `<i class="fas fa-exclamation-triangle text-yellow-600 mr-2" title="Low Stock: Reorder Soon"></i>` : '';
+                    
+                    const row = `
+                        <tr class="hover:bg-gray-100 transition-colors duration-200 ${rowClass}">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${item.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">${item.sku}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+                                ${warningIcon}${item.quantity}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">$${item.price.toFixed(2)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <!-- Edit button color changed to a dark grey for consistency -->
+                                <button data-id="${item.id}" class="edit-btn text-gray-800 hover:text-gray-900 mr-4">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button data-id="${item.id}" class="delete-btn text-red-600 hover:text-red-700">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    inventoryList.insertAdjacentHTML('beforeend', row);
+                });
+            };
+
+            // Handle form submission for adding or editing an item
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const name = document.getElementById('product-name').value.trim();
+                const sku = document.getElementById('product-sku').value.trim();
+                const quantity = parseInt(document.getElementById('product-quantity').value, 10);
+                const price = parseFloat(document.getElementById('product-price').value);
+                const lowStockThreshold = parseInt(document.getElementById('low-stock-threshold').value, 10);
+                const id = form.dataset.editingId;
+
+                // Simple validation
+                // Using a message box instead of alert() for better user experience.
+                const showMessage = (message) => {
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+                    modal.innerHTML = `
+                        <div class="bg-gray-200 p-8 rounded-xl shadow-lg w-full max-w-sm transform scale-100 transition-transform duration-300 ease-out">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Error</h3>
+                            <p class="text-gray-700 mb-6">${message}</p>
+                            <div class="flex justify-end gap-3">
+                                <button class="px-4 py-2 text-white bg-gray-700 rounded-lg hover:bg-gray-800 close-btn">OK</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    modal.querySelector('.close-btn').addEventListener('click', () => {
+                        modal.remove();
+                    });
+                };
+                
+                if (!name || !sku || isNaN(quantity) || isNaN(price) || isNaN(lowStockThreshold) || quantity < 0 || price < 0 || lowStockThreshold < 0) {
+                    showMessage('Please fill out all fields with valid data.');
+                    return;
+                }
+                
+                if (id) {
+                    // Editing an existing item
+                    const itemIndex = inventory.findIndex(item => item.id === id);
+                    if (itemIndex !== -1) {
+                        inventory[itemIndex] = { ...inventory[itemIndex], name, sku, quantity, price, lowStockThreshold };
+                    }
+                    form.dataset.editingId = '';
+                    form.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-plus mr-2"></i>Add Item';
+                } else {
+                    // Adding a new item
+                    const newItem = {
+                        id: Date.now().toString(), // Simple unique ID
+                        name,
+                        sku,
+                        quantity,
+                        price,
+                        lowStockThreshold
+                    };
+                    inventory.push(newItem);
+                }
+
+                saveInventory();
+                renderInventory();
+                form.reset();
+                document.getElementById('low-stock-threshold').value = '5'; // Reset to default
+            });
+
+            // Handle edit and delete button clicks using event delegation
+            inventoryList.addEventListener('click', (e) => {
+                if (e.target.closest('.edit-btn')) {
+                    const id = e.target.closest('.edit-btn').dataset.id;
+                    const itemToEdit = inventory.find(item => item.id === id);
+                    if (itemToEdit) {
+                        // Populate form with item data for editing
+                        document.getElementById('product-name').value = itemToEdit.name;
+                        document.getElementById('product-sku').value = itemToEdit.sku;
+                        document.getElementById('product-quantity').value = itemToEdit.quantity;
+                        document.getElementById('product-price').value = itemToEdit.price;
+                        document.getElementById('low-stock-threshold').value = itemToEdit.lowStockThreshold;
+
+                        // Set a data attribute on the form to indicate we are in edit mode
+                        form.dataset.editingId = id;
+                        form.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-save mr-2"></i>Update Item';
+                    }
+                } else if (e.target.closest('.delete-btn')) {
+                    const id = e.target.closest('.delete-btn').dataset.id;
+                    itemToDeleteId = id;
+                    deleteModal.classList.remove('hidden', 'opacity-0');
+                    deleteModal.classList.add('flex', 'opacity-100');
+                }
+            });
+            
+            // Handle search input
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const filteredInventory = inventory.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.sku.toLowerCase().includes(searchTerm)
+                );
+                renderInventory(filteredInventory);
+            });
+
+            // Handle delete modal buttons
+            cancelDeleteBtn.addEventListener('click', () => {
+                deleteModal.classList.remove('opacity-100');
+                deleteModal.classList.add('opacity-0');
+                setTimeout(() => {
+                    deleteModal.classList.add('hidden');
+                    itemToDeleteId = null;
+                }, 300); // Wait for transition
+            });
+
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (itemToDeleteId) {
+                    inventory = inventory.filter(item => item.id !== itemToDeleteId);
+                    saveInventory();
+                    renderInventory();
+                    
+                    deleteModal.classList.remove('opacity-100');
+                    deleteModal.classList.add('opacity-0');
+                    setTimeout(() => {
+                        deleteModal.classList.add('hidden');
+                        itemToDeleteId = null;
+                    }, 300); // Wait for transition
+                }
+            });
+
+            // Initial load
+            loadInventory();
+        });
+    </script>
+
+</body>
+</html>
