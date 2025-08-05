@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <!-- Use Tailwind CSS for a clean and modern look -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a better look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            gap: 2rem;
+            padding: 2rem 1rem;
+        }
+        .calculator-container {
+            width: 100%;
+            max-width: 500px;
+        }
+        .calculator {
+            background-color: #444444; /* Main calculator body is now dark grey */
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            width: 100%;
+        }
+        .display {
+            background-color: #e0e0e0; /* Lighter display for a more "white" feel */
+            color: #1a1a1a; /* Display text is now a dark grey for contrast */
+            font-size: 2.5rem;
+            text-align: right;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            min-height: 4rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            word-break: break-all;
+            user-select: none;
+        }
+        .buttons {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .buttons.scientific {
+            grid-template-columns: repeat(5, 1fr);
+        }
+        .btn {
+            background-color: #666666; /* Standard buttons are a medium grey */
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 1rem;
+            border-radius: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            user-select: none;
+        }
+        .btn:hover {
+            background-color: #777777;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn.operator {
+            background-color: #222222; /* Operators are darker */
+            color: white;
+        }
+        .btn.operator:hover {
+            background-color: #333333;
+        }
+        .btn.equals {
+            background-color: #000000; /* Equals button is black */
+            color: white;
+        }
+        .btn.equals:hover {
+            background-color: #1a1a1a;
+        }
+        .btn.clear {
+            background-color: #222222; /* Clear button is darker */
+            color: white;
+        }
+        .btn.clear:hover {
+            background-color: #333333;
+        }
+        .btn.mode-toggle {
+            background-color: #000000;
+            color: white;
+        }
+        .btn.mode-toggle:hover {
+            background-color: #1a1a1a;
+        }
+        .btn.span-2 {
+            grid-column: span 2;
+        }
+        .btn.scientific-op {
+            background-color: #555555;
+            color: white;
+        }
+        .btn.scientific-op:hover {
+            background-color: #666666;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Title and description -->
+    <div class="text-center">
+        <h1 class="text-3xl font-bold mb-2">Calculator</h1>
+        <p class="text-lg" style="color: #333333;">A versatile online calculator for basic and scientific arithmetic.</p>
+    </div>
+    
+    <div class="calculator-container">
+        <div class="calculator">
+            <div id="display" class="display">0</div>
+            
+            <!-- Simple Calculator Buttons -->
+            <div id="simple-buttons" class="buttons">
+                <button class="btn mode-toggle" onclick="toggleMode()">Scientific</button>
+                <button class="btn operator" onclick="appendToDisplay('(')">(</button>
+                <button class="btn operator" onclick="appendToDisplay(')')">)</button>
+                <button class="btn clear" onclick="clearDisplay()">C</button>
+
+                <button class="btn" onclick="appendToDisplay('7')">7</button>
+                <button class="btn" onclick="appendToDisplay('8')">8</button>
+                <button class="btn" onclick="appendToDisplay('9')">9</button>
+                <button class="btn operator" onclick="appendToDisplay('/')">/</button>
+
+                <button class="btn" onclick="appendToDisplay('4')">4</button>
+                <button class="btn" onclick="appendToDisplay('5')">5</button>
+                <button class="btn" onclick="appendToDisplay('6')">6</button>
+                <button class="btn operator" onclick="appendToDisplay('*')">x</button>
+
+                <button class="btn" onclick="appendToDisplay('1')">1</button>
+                <button class="btn" onclick="appendToDisplay('2')">2</button>
+                <button class="btn" onclick="appendToDisplay('3')">3</button>
+                <button class="btn operator" onclick="appendToDisplay('-')">-</button>
+
+                <button class="btn" onclick="appendToDisplay('0')">0</button>
+                <button class="btn" onclick="appendToDisplay('.')">.</button>
+                <button class="btn operator" onclick="toggleSign()">+/-</button>
+                <button class="btn operator" onclick="appendToDisplay('+')">+</button>
+                
+                <button class="btn span-2 equals" onclick="calculateResult()">=</button>
+            </div>
+            
+            <!-- Scientific Calculator Buttons (hidden by default) -->
+            <div id="scientific-buttons" class="buttons scientific hidden">
+                <button class="btn mode-toggle" onclick="toggleMode()">Simple</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('sin(')">sin</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('cos(')">cos</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('tan(')">tan</button>
+                <button class="btn scientific-op" onclick="calculateFactorial()">x!</button>
+
+                <button class="btn scientific-op" onclick="appendToDisplay('sqrt(')">sqrt</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('log(')">log</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('ln(')">ln</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('^')">xʸ</button>
+                <button class="btn clear" onclick="clearDisplay()">C</button>
+
+                <button class="btn" onclick="appendToDisplay('7')">7</button>
+                <button class="btn" onclick="appendToDisplay('8')">8</button>
+                <button class="btn" onclick="appendToDisplay('9')">9</button>
+                <button class="btn operator" onclick="appendToDisplay('/')">/</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('pi')">π</button>
+
+                <button class="btn" onclick="appendToDisplay('4')">4</button>
+                <button class="btn" onclick="appendToDisplay('5')">5</button>
+                <button class="btn" onclick="appendToDisplay('6')">6</button>
+                <button class="btn operator" onclick="appendToDisplay('*')">x</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('e')">e</button>
+
+                <button class="btn" onclick="appendToDisplay('1')">1</button>
+                <button class="btn" onclick="appendToDisplay('2')">2</button>
+                <button class="btn" onclick="appendToDisplay('3')">3</button>
+                <button class="btn operator" onclick="appendToDisplay('-')">-</button>
+                <button class="btn operator" onclick="appendToDisplay('+')">+</button>
+
+                <button class="btn" onclick="appendToDisplay('0')">0</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('(')">(</button>
+                <button class="btn scientific-op" onclick="appendToDisplay(')')">)</button>
+                <button class="btn operator" onclick="appendToDisplay('.')">.</button>
+                <button class="btn equals" onclick="calculateResult()">=</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Get the display element and button containers
+        const display = document.getElementById('display');
+        const simpleButtons = document.getElementById('simple-buttons');
+        const scientificButtons = document.getElementById('scientific-buttons');
+
+        // Flag to check if the last input was an equals sign, to clear display for new calculation
+        let isResultDisplayed = false;
+
+        /**
+         * Toggles the calculator mode between simple and scientific.
+         */
+        function toggleMode() {
+            if (simpleButtons.classList.contains('hidden')) {
+                simpleButtons.classList.remove('hidden');
+                scientificButtons.classList.add('hidden');
+            } else {
+                simpleButtons.classList.add('hidden');
+                scientificButtons.classList.remove('hidden');
+            }
+        }
+        
+        /**
+         * Appends a value to the display.
+         * If a new calculation is starting (after an equals sign), it clears the display first.
+         * @param {string} value - The character or number to append.
+         */
+        function appendToDisplay(value) {
+            if (display.innerText === '0' || isResultDisplayed) {
+                display.innerText = value;
+                isResultDisplayed = false;
+            } else {
+                display.innerText += value;
+            }
+        }
+        
+        /**
+         * Toggles the sign of the current number on the display.
+         */
+        function toggleSign() {
+            if (display.innerText !== '0') {
+                const currentText = display.innerText;
+                const lastOperatorIndex = Math.max(
+                    currentText.lastIndexOf('+'),
+                    currentText.lastIndexOf('-'),
+                    currentText.lastIndexOf('*'),
+                    currentText.lastIndexOf('/'),
+                    currentText.lastIndexOf('%')
+                );
+                
+                if (lastOperatorIndex === -1) {
+                    // No operator, toggle the whole number
+                    display.innerText = currentText.startsWith('-') ? currentText.substring(1) : '-' + currentText;
+                } else {
+                    // Toggle the sign of the last number
+                    const lastNumber = currentText.substring(lastOperatorIndex + 1);
+                    const prefix = currentText.substring(0, lastOperatorIndex + 1);
+                    if (lastNumber.startsWith('-')) {
+                        display.innerText = prefix + lastNumber.substring(1);
+                    } else {
+                        display.innerText = prefix + '-' + lastNumber;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Clears the display and resets the result flag.
+         */
+        function clearDisplay() {
+            display.innerText = '0';
+            isResultDisplayed = false;
+        }
+
+        /**
+         * Calculates the factorial of the current number on the display.
+         */
+        function calculateFactorial() {
+            const num = parseFloat(display.innerText);
+            if (isNaN(num) || num < 0 || num !== Math.floor(num)) {
+                display.innerText = 'Error';
+            } else {
+                let result = 1;
+                for (let i = 2; i <= num; i++) {
+                    result *= i;
+                }
+                display.innerText = result;
+            }
+            isResultDisplayed = true;
+        }
+
+        /**
+         * Calculates the result of the expression on the display.
+         * Uses a safer approach to handle scientific functions before using eval.
+         */
+        function calculateResult() {
+            try {
+                let expression = display.innerText;
+
+                // Replace constants
+                expression = expression.replace(/pi/g, Math.PI);
+                expression = expression.replace(/e/g, Math.E);
+                
+                // Replace operators and functions for eval
+                expression = expression.replace(/x/g, '*');
+                expression = expression.replace(/\^/g, '**');
+
+                // Handle trig functions (assuming degrees)
+                expression = expression.replace(/sin\((.*?)\)/g, (match, p1) => `Math.sin(${eval(p1)} * Math.PI / 180)`);
+                expression = expression.replace(/cos\((.*?)\)/g, (match, p1) => `Math.cos(${eval(p1)} * Math.PI / 180)`);
+                expression = expression.replace(/tan\((.*?)\)/g, (match, p1) => `Math.tan(${eval(p1)} * Math.PI / 180)`);
+                
+                // Handle other functions
+                expression = expression.replace(/sqrt\((.*?)\)/g, (match, p1) => `Math.sqrt(${eval(p1)})`);
+                expression = expression.replace(/log\((.*?)\)/g, (match, p1) => `Math.log10(${eval(p1)})`);
+                expression = expression.replace(/ln\((.*?)\)/g, (match, p1) => `Math.log(${eval(p1)})`);
+
+                const result = eval(expression);
+
+                if (isFinite(result)) {
+                    display.innerText = result;
+                    isResultDisplayed = true;
+                } else {
+                    display.innerText = 'Error';
+                    isResultDisplayed = true;
+                }
+            } catch (error) {
+                display.innerText = 'Error';
+                isResultDisplayed = true;
+            }
+        }
+    </script>
+</body>
+</html>
