@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Freebiz Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .icon-box {
+            @apply flex flex-col items-center p-3 rounded-xl border border-gray-200 h-full transform transition-all duration-200 ease-in-out;
+        }
+        .icon-box:hover {
+            @apply shadow-lg bg-gray-50 scale-[1.02] -translate-y-1 ring-2 ring-indigo-500;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl w-full max-w-6xl">
+        <!-- Title Section -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight">All Freebiz Tools</h1>
+            <p class="mt-4 text-lg text-gray-600">Click a category to filter the tools below.</p>
+        </div>
+        <!-- Categories Navigation -->
+        <nav class="flex flex-wrap justify-center gap-2 mb-10">
+            <button class="category-btn py-2 px-6 rounded-full font-medium transition-colors duration-200 shadow-sm" data-category="All" onclick="filterTools(this, 'All')">All</button>
+            <button class="category-btn py-2 px-6 rounded-full font-medium transition-colors duration-200 shadow-sm" data-category="Financial Calculators" onclick="filterTools(this, 'Financial Calculators')">Financial Calculators</button>
+            <button class="category-btn py-2 px-6 rounded-full font-medium transition-colors duration-200 shadow-sm" data-category="Business & Strategy" onclick="filterTools(this, 'Business & Strategy')">Business & Strategy</button>
+            <button class="category-btn py-2 px-6 rounded-full font-medium transition-colors duration-200 shadow-sm" data-category="Document & Record Keeping" onclick="filterTools(this, 'Document & Record Keeping')">Document & Record Keeping</button>
+        </nav>
+        <!-- Tools Container -->
+        <div id="tools-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Tool cards will be dynamically inserted here by JavaScript -->
+        </div>
+    </div>
+    <script>
+        // Array of example tools with their details, including category and SVG icon
+        const tools = [
+            {
+                name: "Salary After Tax Calculator",
+                category: "Financial Calculators",
+                description: "Calculate your take-home pay instantly.",
+                href: "salary-calculator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`
+            },
+            {
+                name: "Loan/EMI/Margin Calculator",
+                category: "Financial Calculators",
+                description: "Easily compute loan payments and profit margins.",
+                href: "loan-emi-calculator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>`
+            },
+            {
+                name: "Break-Even Calculator",
+                category: "Financial Calculators",
+                description: "Find the point where your business becomes profitable.",
+                href: "break-even-calculator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path><path d="M12 14h.01"></path><path d="M12 10h.01"></path><path d="M9 14h.01"></path><path d="M9 10h.01"></path><path d="M15 14h.01"></path><path d="M15 10h.01"></path><path d="M9 18h.01"></path><path d="M15 18h.01"></path></svg>`
+            },
+            {
+                name: "Revenue Calculator",
+                category: "Financial Calculators",
+                description: "Calculate and predict revenue with ease.",
+                href: "Revenue-Calculator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M3 3v18h18"></path><path d="M5 15L10 10L15 12L19 8"></path></svg>`
+            },
+            {
+                name: "Budget Planner",
+                category: "Business & Strategy",
+                description: "Plan and track your finances with a simple tool.",
+                href: "budget-planner.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M19 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"></path><path d="M14 2v4"></path><path d="M10 2v4"></path><path d="M3 10h18"></path></svg>`
+            },
+            {
+                name: "Business Health Checker",
+                category: "Business & Strategy",
+                description: "Get an instant report on your company's performance.",
+                href: "business-health-checker.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>`
+            },
+            {
+                name: "Pricing Strategy Adviser",
+                category: "Business & Strategy",
+                description: "Find the optimal price for your products or services.",
+                href: "pricing-strategy-adviser.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414L19 21.414a2 2 0 0 0 2.828 0l2-2a2 2 0 0 0 0-2.828Z"></path><path d="M7 7h.01"></path></svg>`
+            },
+            {
+                name: "Customer Lifetime Value (CLV)",
+                category: "Business & Strategy",
+                description: "Understand the long-term value of your customers.",
+                href: "customer-lifetime-value-calculator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`
+            },
+            {
+                name: "Customer Persona Builder",
+                category: "Business & Strategy",
+                description: "Create detailed customer profiles to target your audience.",
+                href: "customer-persona-builder.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`
+            },
+            {
+                name: "CRM Lite",
+                category: "Document & Record Keeping",
+                description: "Manage your customer relationships with ease.",
+                href: "crm-lite.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><circle cx="12" cy="10" r="2"></circle><line x1="12" x2="12" y1="2" y2="4"></line><line x1="8" x2="8" y1="2" y2="4"></line><line x1="16" x2="16" y1="2" y2="4"></line></svg>`
+            },
+            {
+                name: "Marketing Calendar",
+                category: "Document & Record Keeping",
+                description: "Plan and track your marketing campaigns with ease.",
+                href: "marketing-calendar.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`
+            },
+            {
+                name: "Financial Statement Generator",
+                category: "Document & Record Keeping",
+                description: "Generate essential financial statements for your business.",
+                href: "financial-statement-generator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>`
+            },
+            {
+                name: "Invoice Generator",
+                category: "Document & Record Keeping",
+                description: "Create professional invoices quickly and easily.",
+                href: "invoice-generator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="10" y2="9"></line></svg>`
+            },
+            {
+                name: "Quotation and Receipt Generator",
+                category: "Document & Record Keeping",
+                description: "Create professional Quotations and Receipts easily.",
+                href: "document-generator.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`
+            },
+            {
+                name: "Project Management",
+                category: "Document & Record Keeping",
+                description: "Create and Manage your project with ease.",
+                href: "project-management.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="12" x2="15" y2="12"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="9" y1="16" x2="15" y2="16"></line></svg>`
+            },
+            {
+                name: "Inventory Management",
+                category: "Document & Record Keeping",
+                description: "Track and manage your products with ease.",
+                href: "inventory_tool.html",
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"></path><path d="M10 12h.01"></path><path d="M14 12h.01"></path><path d="M18 12h.01"></path><rect x="3" y="10" width="18" height="11" rx="2" ry="2"></rect></svg>`
+            }
+        ];
+        /**
+         * Renders the given array of tools into the tools-container div.
+         * @param {Array} toolsToRender - The array of tool objects to display.
+         */
+        function renderTools(toolsToRender) {
+            const container = document.getElementById('tools-container');
+            container.innerHTML = ''; // Clear existing tools
+            if (toolsToRender.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 col-span-full">No tools found for this category.</p>';
+                return;
+            }
+            toolsToRender.forEach(tool => {
+                const toolCard = `
+                    <a href="${tool.href}" class="tool-link" target="_blank">
+                        <div class="icon-box">
+                            ${tool.icon}
+                            <span class="text-center text-gray-700 font-medium">${tool.name}</span>
+                            <p class="text-sm text-gray-500 mt-1">${tool.description}</p>
+                        </div>
+                    </a>
+                `;
+                container.innerHTML += toolCard;
+            });
+        }
+        /**
+         * Filters the main tools array based on a given category and renders the result.
+         * It also handles the active state of the category buttons.
+         * @param {HTMLElement} clickedButton - The button element that was clicked.
+         * @param {string} category - The category to filter by, or 'All' to show all tools.
+         */
+        function filterTools(clickedButton, category) {
+            const buttons = document.querySelectorAll('.category-btn');
+            // Remove active classes from all buttons
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-gray-700', 'text-white', 'shadow-md');
+                btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'hover:text-gray-800');
+            });
+            // Add active classes to the clicked button
+            clickedButton.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'hover:text-gray-800');
+            clickedButton.classList.add('bg-gray-700', 'text-white', 'shadow-md');
+            let filteredTools = [];
+            if (category === 'All') {
+                filteredTools = tools;
+            } else {
+                filteredTools = tools.filter(tool => tool.category === category);
+            }
+            renderTools(filteredTools);
+        }
+        // Initialize the page by rendering all tools and setting the 'All' button as active when the window loads.
+        window.onload = function() {
+            const allButton = document.querySelector('[data-category="All"]');
+            filterTools(allButton, 'All');
+        };
+    </script>
+</body>
+</html>
