@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Revenue Calculator</title>
+    <!-- Inter Font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- D3.js for the chart in the Advanced calculator -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF AutoTable plugin for table generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #4b5563; /* dark grey border */
+            color: #1f2937; /* dark grey text */
+        }
+        .tab-button {
+            color: #6b7280; /* grey text for inactive tabs */
+        }
+        /* Custom tooltip styling to ensure it appears on top */
+        .group .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .group:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen p-4 flex items-center justify-center">
+
+    <div class="container max-w-5xl mx-auto space-y-8 p-6 lg:p-12 bg-white rounded-2xl shadow-2xl animate-fadeIn">
+        
+        <header class="text-center">
+            <h1 class="text-4xl lg:text-5xl font-bold text-gray-900">Unified Revenue Calculator</h1>
+            <p class="mt-2 text-gray-600">Choose a calculator to get started.</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-300">
+            <button id="tab-simple" class="tab-button active px-4 py-2 text-lg font-semibold transition-colors duration-200">Simple</button>
+            <button id="tab-advanced" class="tab-button px-4 py-2 text-lg font-semibold transition-colors duration-200">Advanced</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="simple-calculator-content" class="tab-content space-y-8">
+            <!-- Simple Calculator Content -->
+            <section class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Input Metrics</h2>
+                <form id="simple-revenue-form" class="space-y-4">
+                    <div class="relative">
+                        <label for="initial-users-simple" class="flex items-center text-sm font-medium text-gray-700">
+                            Initial Active Users
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The number of active users you have at the beginning of the projection.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="initial-users-simple" value="100" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="avg-revenue-simple" class="flex items-center text-sm font-medium text-gray-700">
+                            Avg. Revenue per User ($)
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The average revenue you generate from each user per month.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="avg-revenue-simple" value="10" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="new-users-simple" class="flex items-center text-sm font-medium text-gray-700">
+                            New Users per Month
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The number of new users you expect to acquire each month.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="new-users-simple" value="10" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <button type="submit"
+                        class="w-full px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                        Calculate
+                    </button>
+                </form>
+            </section>
+
+            <section id="simple-results" class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300 hidden">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">12-Month Projection</h2>
+                <div class="space-y-3">
+                    <p class="text-lg font-medium text-gray-700">
+                        Total Projected Revenue: <span id="total-revenue-simple-summary" class="font-bold text-gray-600">$0</span>
+                    </p>
+                    <p class="text-lg font-medium text-gray-700">
+                        Total Users: <span id="total-users-simple-summary" class="font-bold text-gray-600">0</span>
+                    </p>
+                </div>
+                <div class="mt-6 flex flex-wrap gap-4">
+                    <button id="download-simple-pdf" class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                        Download PDF
+                    </button>
+                    <button id="download-simple-csv" class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                        Download CSV
+                    </button>
+                </div>
+            </section>
+
+            <div id="simple-error-message-box" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm transform scale-100 transition-transform duration-300 ease-out">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Input Error</h3>
+                    <p id="simple-error-text" class="text-gray-700 mb-6"></p>
+                    <div class="flex justify-end gap-3">
+                        <button id="simple-close-error-btn" class="px-4 py-2 text-white bg-gray-600 rounded-lg hover:bg-gray-700">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="advanced-calculator-content" class="tab-content hidden space-y-8">
+            <!-- Advanced Calculator Content -->
+            <section class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Input Metrics</h2>
+                <form id="advanced-revenue-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="relative">
+                        <label for="initial-users-advanced" class="flex items-center text-sm font-medium text-gray-700">
+                            Initial Active Users
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The number of active users you have at the beginning of the projection.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="initial-users-advanced" value="100" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="avg-revenue-per-user-advanced" class="flex items-center text-sm font-medium text-gray-700">
+                            Avg. Revenue per User ($)
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The average revenue you generate from each user per month. This is also known as ARPU (Average Revenue Per User).
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="avg-revenue-per-user-advanced" value="10" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="monthly-churn-rate-advanced" class="flex items-center text-sm font-medium text-gray-700">
+                            Monthly Churn Rate (%)
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The percentage of users you lose each month. A 5% churn rate means 5 out of every 100 users will leave.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="monthly-churn-rate-advanced" value="5" min="0" max="100" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="new-users-per-month-advanced" class="flex items-center text-sm font-medium text-gray-700">
+                            New Users per Month
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The number of new users you expect to acquire each month.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="new-users-per-month-advanced" value="10" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="customer-acquisition-cost-advanced" class="flex items-center text-sm font-medium text-gray-700">
+                            Customer Acquisition Cost (CAC)
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The average cost to acquire one new user.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="customer-acquisition-cost-advanced" value="25" min="0" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="relative">
+                        <label for="projection-months-advanced" class="flex items-center text-sm font-medium text-gray-700">
+                            Projection Months
+                            <div class="relative group ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500 cursor-pointer">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063 1.063l-.041.02a.75.75 0 01-1.063-1.063zm0 0l-1.5 1.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                                    The total number of months to calculate the projection for.
+                                </span>
+                            </div>
+                        </label>
+                        <input type="number" id="projection-months-advanced" value="12" min="1" max="120" required
+                            class="mt-1 w-full px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit"
+                            class="w-full px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                            Calculate
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="advanced-results" class="bg-gray-200 p-6 rounded-xl shadow-inner border border-gray-300 hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Projected Metrics</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="relative group bg-white p-4 rounded-lg shadow-md">
+                        <p class="text-sm font-medium text-gray-500">Total Revenue</p>
+                        <p id="total-revenue-advanced" class="text-2xl font-bold text-gray-600">$0</p>
+                        <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                            The total cumulative revenue generated over the projected period.
+                        </span>
+                    </div>
+                    <div class="relative group bg-white p-4 rounded-lg shadow-md">
+                        <p class="text-sm font-medium text-gray-500">Total Users</p>
+                        <p id="total-users-advanced" class="text-2xl font-bold text-gray-600">0</p>
+                        <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                            The total number of active users at the end of the projected period.
+                        </span>
+                    </div>
+                    <div class="relative group bg-white p-4 rounded-lg shadow-md">
+                        <p class="text-sm font-medium text-gray-500">Customer LTV</p>
+                        <p id="customer-ltv-advanced" class="text-2xl font-bold text-gray-600">$0</p>
+                        <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                            The total revenue a business can expect from a single customer account throughout their relationship.
+                        </span>
+                    </div>
+                    <div class="relative group bg-white p-4 rounded-lg shadow-md">
+                        <p class="text-sm font-medium text-gray-500">LTV:CAC Ratio</p>
+                        <p id="ltv-cac-ratio-advanced" class="text-2xl font-bold text-gray-600">0</p>
+                        <span class="tooltip absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max p-2 text-xs text-white bg-gray-800 rounded-lg shadow-lg">
+                            The ratio of Customer Lifetime Value to Customer Acquisition Cost. A ratio greater than 1.0 is generally considered a good sign.
+                        </span>
+                    </div>
+                </div>
+
+                <div id="chart-container-advanced" class="w-full h-80 bg-white p-4 rounded-lg shadow-inner flex items-center justify-center">
+                    <!-- Placeholder message for the chart -->
+                    <span id="chart-placeholder-message" class="text-gray-500 text-lg">Your revenue chart will appear here.</span>
+                </div>
+                
+                <div id="advanced-results-table-container" class="overflow-x-auto mt-6 rounded-lg shadow-md">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-300">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Month</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Active Users</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Monthly Revenue ($)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">CAC ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="advanced-results-table-body">
+                            <!-- Results will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-4">
+                    <button id="download-advanced-pdf" class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                        Download PDF
+                    </button>
+                    <button id="download-advanced-csv" class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                        Download CSV
+                    </button>
+                </div>
+            </section>
+            
+            <div id="advanced-error-message-box" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm transform scale-100 transition-transform duration-300 ease-out">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Input Error</h3>
+                    <p id="advanced-error-text" class="text-gray-700 mb-6"></p>
+                    <div class="flex justify-end gap-3">
+                        <button id="advanced-close-error-btn" class="px-4 py-2 text-white bg-gray-600 rounded-lg hover:bg-gray-700">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Global variables to store calculated data for download
+            let simpleCalculationData = null;
+            let advancedCalculationData = null;
+
+            // --- Common functions for tab switching ---
+            const tabSimpleBtn = document.getElementById('tab-simple');
+            const tabAdvancedBtn = document.getElementById('tab-advanced');
+            const simpleContent = document.getElementById('simple-calculator-content');
+            const advancedContent = document.getElementById('advanced-calculator-content');
+
+            const switchTab = (tab) => {
+                tabSimpleBtn.classList.remove('active');
+                tabAdvancedBtn.classList.remove('active');
+                simpleContent.classList.add('hidden');
+                advancedContent.classList.add('hidden');
+
+                if (tab === 'simple') {
+                    tabSimpleBtn.classList.add('active');
+                    simpleContent.classList.remove('hidden');
+                } else {
+                    tabAdvancedBtn.classList.add('active');
+                    advancedContent.classList.remove('hidden');
+                }
+            };
+
+            tabSimpleBtn.addEventListener('click', () => switchTab('simple'));
+            tabAdvancedBtn.addEventListener('click', () => switchTab('advanced'));
+
+            // --- Simple Calculator Logic ---
+            const simpleForm = document.getElementById('simple-revenue-form');
+            const simpleResultsSection = document.getElementById('simple-results');
+            const simpleTotalRevenueSummary = document.getElementById('total-revenue-simple-summary');
+            const simpleTotalUsersSummary = document.getElementById('total-users-simple-summary');
+            const simpleErrorMessageBox = document.getElementById('simple-error-message-box');
+            const simpleErrorText = document.getElementById('simple-error-text');
+            const simpleCloseErrorBtn = document.getElementById('simple-close-error-btn');
+            const downloadSimplePdfBtn = document.getElementById('download-simple-pdf');
+            const downloadSimpleCsvBtn = document.getElementById('download-simple-csv');
+
+            const showSimpleError = (message) => {
+                simpleErrorText.textContent = message;
+                simpleErrorMessageBox.classList.remove('hidden');
+            };
+
+            simpleCloseErrorBtn.addEventListener('click', () => {
+                simpleErrorMessageBox.classList.add('hidden');
+            });
+
+            simpleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const initialUsers = parseFloat(document.getElementById('initial-users-simple').value);
+                const avgRevenuePerUser = parseFloat(document.getElementById('avg-revenue-simple').value);
+                const newUsersPerMonth = parseFloat(document.getElementById('new-users-simple').value);
+
+                if (isNaN(initialUsers) || isNaN(avgRevenuePerUser) || isNaN(newUsersPerMonth) || initialUsers < 0 || avgRevenuePerUser < 0 || newUsersPerMonth < 0) {
+                    showSimpleError('Please enter valid, non-negative numbers.');
+                    return;
+                }
+
+                const numMonths = 12;
+                const totalNewUsers = newUsersPerMonth * numMonths;
+                const totalUsers = initialUsers + totalNewUsers;
+                const totalRevenue = (initialUsers * avgRevenuePerUser * numMonths) + (avgRevenuePerUser * newUsersPerMonth * (numMonths * (numMonths + 1) / 2));
+                
+                simpleCalculationData = {
+                    totalRevenue: totalRevenue,
+                    totalUsers: totalUsers,
+                    initialUsers: initialUsers,
+                    avgRevenuePerUser: avgRevenuePerUser,
+                    newUsersPerMonth: newUsersPerMonth,
+                    numMonths: numMonths
+                };
+
+                simpleTotalRevenueSummary.textContent = `$${totalRevenue.toFixed(2)}`;
+                simpleTotalUsersSummary.textContent = Math.round(totalUsers);
+                simpleResultsSection.classList.remove('hidden');
+            });
+
+            // Download simple data as CSV
+            downloadSimpleCsvBtn.addEventListener('click', () => {
+                if (!simpleCalculationData) {
+                    showSimpleError("Please run a calculation first before trying to download.");
+                    return;
+                }
+                const csvContent = "data:text/csv;charset=utf-8," 
+                    + "Metric,Value\n"
+                    + `Total Projected Revenue,$${simpleCalculationData.totalRevenue.toFixed(2)}\n`
+                    + `Total Users,${Math.round(simpleCalculationData.totalUsers)}\n`
+                    + `Initial Active Users,${simpleCalculationData.initialUsers}\n`
+                    + `Avg. Revenue per User,$${simpleCalculationData.avgRevenuePerUser.toFixed(2)}\n`
+                    + `New Users per Month,${simpleCalculationData.newUsersPerMonth}\n`
+                    + `Projection Months,${simpleCalculationData.numMonths}\n`;
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "simple_revenue_projection.csv");
+                document.body.appendChild(link); // Required for Firefox
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Download simple data as PDF
+            downloadSimplePdfBtn.addEventListener('click', () => {
+                if (!simpleCalculationData) {
+                    showSimpleError("Please run a calculation first before trying to download.");
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                doc.setFontSize(22);
+                doc.text("Simple Revenue Projection", 14, 20);
+
+                doc.setFontSize(14);
+                doc.text(`Total Projected Revenue: $${simpleCalculationData.totalRevenue.toFixed(2)}`, 14, 35);
+                doc.text(`Total Users: ${Math.round(simpleCalculationData.totalUsers)}`, 14, 45);
+                doc.text(`Initial Active Users: ${simpleCalculationData.initialUsers}`, 14, 60);
+                doc.text(`Avg. Revenue per User: $${simpleCalculationData.avgRevenuePerUser.toFixed(2)}`, 14, 70);
+                doc.text(`New Users per Month: ${simpleCalculationData.newUsersPerMonth}`, 14, 80);
+
+                doc.save("simple_revenue_projection.pdf");
+            });
+
+            // --- Advanced Calculator Logic ---
+            const advancedForm = document.getElementById('advanced-revenue-form');
+            const advancedResultsSection = document.getElementById('advanced-results');
+            const advancedTableBody = document.getElementById('advanced-results-table-body');
+            const totalRevenueAdvanced = document.getElementById('total-revenue-advanced');
+            const totalUsersAdvanced = document.getElementById('total-users-advanced');
+            const customerLTVAdvanced = document.getElementById('customer-ltv-advanced');
+            const ltvCacRatioAdvanced = document.getElementById('ltv-cac-ratio-advanced');
+            const advancedErrorMessageBox = document.getElementById('advanced-error-message-box');
+            const advancedErrorText = document.getElementById('advanced-error-text');
+            const advancedCloseErrorBtn = document.getElementById('advanced-close-error-btn');
+            const chartContainerAdvanced = document.getElementById('chart-container-advanced');
+            const downloadAdvancedPdfBtn = document.getElementById('download-advanced-pdf');
+            const downloadAdvancedCsvBtn = document.getElementById('download-advanced-csv');
+
+            const showAdvancedError = (message) => {
+                advancedErrorText.textContent = message;
+                advancedErrorMessageBox.classList.remove('hidden');
+            };
+
+            advancedCloseErrorBtn.addEventListener('click', () => {
+                advancedErrorMessageBox.classList.add('hidden');
+            });
+            
+            advancedForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const initialUsers = parseFloat(document.getElementById('initial-users-advanced').value);
+                const avgRevenuePerUser = parseFloat(document.getElementById('avg-revenue-per-user-advanced').value);
+                const monthlyChurnRate = parseFloat(document.getElementById('monthly-churn-rate-advanced').value) / 100;
+                const newUsersPerMonth = parseFloat(document.getElementById('new-users-per-month-advanced').value);
+                const customerAcquisitionCost = parseFloat(document.getElementById('customer-acquisition-cost-advanced').value);
+                const projectionMonths = parseFloat(document.getElementById('projection-months-advanced').value);
+
+                if (isNaN(initialUsers) || isNaN(avgRevenuePerUser) || isNaN(monthlyChurnRate) || isNaN(newUsersPerMonth) || isNaN(customerAcquisitionCost) || isNaN(projectionMonths) || initialUsers < 0 || avgRevenuePerUser < 0 || monthlyChurnRate < 0 || monthlyChurnRate > 1 || newUsersPerMonth < 0 || customerAcquisitionCost < 0 || projectionMonths < 1) {
+                    showAdvancedError('Please enter valid, non-negative numbers. Churn rate must be between 0 and 100%.');
+                    return;
+                }
+
+                let currentUsers = initialUsers;
+                let monthlyData = [];
+                let totalRevenue = 0;
+                let totalCAC = 0;
+
+                for (let i = 1; i <= projectionMonths; i++) {
+                    const newUsers = newUsersPerMonth;
+                    const churnedUsers = currentUsers * monthlyChurnRate;
+                    const retainedUsers = currentUsers - churnedUsers;
+                    currentUsers = retainedUsers + newUsers;
+
+                    const monthlyRevenue = currentUsers * avgRevenuePerUser;
+                    const monthlyCAC = newUsers * customerAcquisitionCost;
+                    
+                    totalRevenue += monthlyRevenue;
+                    totalCAC += monthlyCAC;
+
+                    monthlyData.push({
+                        month: i,
+                        users: Math.round(currentUsers),
+                        revenue: monthlyRevenue,
+                        cac: monthlyCAC
+                    });
+                }
+                
+                const finalUsers = monthlyData[monthlyData.length - 1]?.users || 0;
+                const customerLifetimeValue = monthlyChurnRate > 0 ? (avgRevenuePerUser / monthlyChurnRate) : Infinity;
+                const ltvToCacRatio = customerAcquisitionCost > 0 ? (customerLifetimeValue / customerAcquisitionCost) : Infinity;
+
+                // Store calculated data in global variable
+                advancedCalculationData = {
+                    monthlyData,
+                    totalRevenue,
+                    finalUsers,
+                    customerLifetimeValue,
+                    ltvToCacRatio
+                };
+
+                // Update results
+                totalRevenueAdvanced.textContent = `$${totalRevenue.toFixed(2)}`;
+                totalUsersAdvanced.textContent = finalUsers;
+                customerLTVAdvanced.textContent = monthlyChurnRate > 0 ? `$${customerLifetimeValue.toFixed(2)}` : 'N/A';
+                ltvCacRatioAdvanced.textContent = customerAcquisitionCost > 0 ? ltvToCacRatio.toFixed(2) : 'N/A';
+
+                // Make the results section visible BEFORE rendering the chart
+                advancedResultsSection.classList.remove('hidden');
+
+                renderAdvancedResultsTable(monthlyData);
+                renderAdvancedChart(monthlyData);
+            });
+
+            const renderAdvancedResultsTable = (data) => {
+                advancedTableBody.innerHTML = '';
+                data.forEach(month => {
+                    const row = `
+                        <tr class="hover:bg-gray-100 transition-colors duration-200">
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">Month ${month.month}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">${month.users}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">$${month.revenue.toFixed(2)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">$${month.cac.toFixed(2)}</td>
+                        </tr>
+                    `;
+                    advancedTableBody.insertAdjacentHTML('beforeend', row);
+                });
+            };
+
+            const renderAdvancedChart = (data) => {
+                // Clear the container and check for valid data
+                chartContainerAdvanced.innerHTML = '';
+                const hasRevenue = data.some(d => d.revenue > 0);
+
+                if (!hasRevenue) {
+                    chartContainerAdvanced.classList.add('flex', 'items-center', 'justify-center');
+                    chartContainerAdvanced.innerHTML = `<span class="text-gray-500 text-lg">No revenue to display on the chart.</span>`;
+                    return;
+                }
+
+                chartContainerAdvanced.classList.remove('flex', 'items-center', 'justify-center');
+                const margin = {top: 20, right: 20, bottom: 40, left: 60};
+                const width = chartContainerAdvanced.clientWidth - margin.left - margin.right;
+                const height = chartContainerAdvanced.clientHeight - margin.top - margin.bottom;
+
+                const svg = d3.select(chartContainerAdvanced)
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                const x = d3.scaleBand()
+                    .range([0, width])
+                    .domain(data.map(d => d.month))
+                    .padding(0.2);
+
+                svg.append("g")
+                    .attr("transform", `translate(0,${height})`)
+                    .call(d3.axisBottom(x));
+
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.revenue) * 1.1])
+                    .range([height, 0]);
+
+                svg.append("g")
+                    .call(d3.axisLeft(y).tickFormat(d3.format(".2s")));
+
+                svg.selectAll(".bar")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("x", d => x(d.month))
+                    .attr("y", d => y(d.revenue))
+                    .attr("width", x.bandwidth())
+                    .attr("height", d => height - y(d.revenue))
+                    .attr("fill", "#4b5563") /* dark grey for bars */
+                    .attr("rx", 4)
+                    .on("mouseover", function(event, d) {
+                        d3.select(this).attr("fill", "#1f2937"); /* even darker grey on hover */
+                        // Tooltip logic needs to be added here for a better user experience
+                    })
+                    .on("mouseout", function() {
+                        d3.select(this).attr("fill", "#4b5563");
+                    });
+            };
+            
+            // Download advanced data as CSV
+            downloadAdvancedCsvBtn.addEventListener('click', () => {
+                if (!advancedCalculationData) {
+                    showAdvancedError("Please run a calculation first before trying to download.");
+                    return;
+                }
+                const csvContent = "data:text/csv;charset=utf-8," 
+                    + "Month,Active Users,Monthly Revenue ($),CAC ($)\n" 
+                    + advancedCalculationData.monthlyData.map(d => `${d.month},${d.users},${d.revenue.toFixed(2)},${d.cac.toFixed(2)}`).join('\n');
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "advanced_revenue_projection.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Download advanced data as PDF
+            downloadAdvancedPdfBtn.addEventListener('click', () => {
+                if (!advancedCalculationData) {
+                    showAdvancedError("Please run a calculation first before trying to download.");
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                doc.setFontSize(22);
+                doc.text("Advanced Revenue Projection", 14, 20);
+
+                doc.setFontSize(14);
+                doc.text(`Total Revenue: $${advancedCalculationData.totalRevenue.toFixed(2)}`, 14, 35);
+                doc.text(`Total Users: ${advancedCalculationData.finalUsers}`, 14, 45);
+                doc.text(`Customer LTV: $${advancedCalculationData.customerLifetimeValue.toFixed(2)}`, 14, 55);
+                doc.text(`LTV:CAC Ratio: ${advancedCalculationData.ltvToCacRatio.toFixed(2)}`, 14, 65);
+
+                const tableData = advancedCalculationData.monthlyData.map(d => [
+                    `Month ${d.month}`,
+                    d.users,
+                    `$${d.revenue.toFixed(2)}`,
+                    `$${d.cac.toFixed(2)}`
+                ]);
+                
+                doc.autoTable({
+                    startY: 80,
+                    head: [['Month', 'Active Users', 'Monthly Revenue ($)', 'CAC ($)']],
+                    body: tableData,
+                    headStyles: { fillColor: [75, 85, 99] },
+                    alternateRowStyles: { fillColor: [243, 244, 246] }
+                });
+
+                doc.save("advanced_revenue_projection.pdf");
+            });
+        });
+    </script>
+</body>
+</html>
