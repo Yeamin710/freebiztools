@@ -124,7 +124,12 @@
         <h1 class="text-3xl font-bold mb-2">Calculator</h1>
         <p class="text-lg" style="color: #333333;">A versatile online calculator for basic and scientific arithmetic.</p>
     </div>
-    
+      <a href="https://freebiztools.xyz"
+       class="absolute top-4 left-4 inline-block bg-gray-800 text-white py-2 px-4 rounded-md font-semibold
+              hover:bg-gray-900 transition duration-200 focus:outline-none focus:ring-2
+              focus:ring-gray-700 focus:ring-offset-2">
+        Back to Home
+    </a>
     <div class="calculator-container">
         <div class="calculator">
             <div id="display" class="display">0</div>
@@ -132,29 +137,29 @@
             <!-- Simple Calculator Buttons -->
             <div id="simple-buttons" class="buttons">
                 <button class="btn mode-toggle" onclick="toggleMode()">Scientific</button>
-                <button class="btn operator" onclick="appendToDisplay('(')">(</button>
-                <button class="btn operator" onclick="appendToDisplay(')')">)</button>
+                <button class="btn operator" onclick="backspace()">←</button>
                 <button class="btn clear" onclick="clearDisplay()">C</button>
+                <button class="btn operator" onclick="appendToDisplay('/')">/</button>
 
                 <button class="btn" onclick="appendToDisplay('7')">7</button>
                 <button class="btn" onclick="appendToDisplay('8')">8</button>
                 <button class="btn" onclick="appendToDisplay('9')">9</button>
-                <button class="btn operator" onclick="appendToDisplay('/')">/</button>
+                <button class="btn operator" onclick="appendToDisplay('*')">x</button>
 
                 <button class="btn" onclick="appendToDisplay('4')">4</button>
                 <button class="btn" onclick="appendToDisplay('5')">5</button>
                 <button class="btn" onclick="appendToDisplay('6')">6</button>
-                <button class="btn operator" onclick="appendToDisplay('*')">x</button>
+                <button class="btn operator" onclick="appendToDisplay('-')">-</button>
 
                 <button class="btn" onclick="appendToDisplay('1')">1</button>
                 <button class="btn" onclick="appendToDisplay('2')">2</button>
                 <button class="btn" onclick="appendToDisplay('3')">3</button>
-                <button class="btn operator" onclick="appendToDisplay('-')">-</button>
+                <button class="btn operator" onclick="appendToDisplay('+')">+</button>
 
                 <button class="btn" onclick="appendToDisplay('0')">0</button>
                 <button class="btn" onclick="appendToDisplay('.')">.</button>
-                <button class="btn operator" onclick="toggleSign()">+/-</button>
-                <button class="btn operator" onclick="appendToDisplay('+')">+</button>
+                <button class="btn operator" onclick="appendToDisplay('(')">(</button>
+                <button class="btn operator" onclick="appendToDisplay(')')">)</button>
                 
                 <button class="btn span-2 equals" onclick="calculateResult()">=</button>
             </div>
@@ -162,38 +167,32 @@
             <!-- Scientific Calculator Buttons (hidden by default) -->
             <div id="scientific-buttons" class="buttons scientific hidden">
                 <button class="btn mode-toggle" onclick="toggleMode()">Simple</button>
+                <button class="btn scientific-op" onclick="backspace()">←</button>
+                <button class="btn clear" onclick="clearDisplay()">C</button>
+                <button class="btn scientific-op" onclick="calculateFactorial()">x!</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('^')">xʸ</button>
+
                 <button class="btn scientific-op" onclick="appendToDisplay('sin(')">sin</button>
                 <button class="btn scientific-op" onclick="appendToDisplay('cos(')">cos</button>
                 <button class="btn scientific-op" onclick="appendToDisplay('tan(')">tan</button>
-                <button class="btn scientific-op" onclick="calculateFactorial()">x!</button>
-
-                <button class="btn scientific-op" onclick="appendToDisplay('sqrt(')">sqrt</button>
-                <button class="btn scientific-op" onclick="appendToDisplay('log(')">log</button>
-                <button class="btn scientific-op" onclick="appendToDisplay('ln(')">ln</button>
-                <button class="btn scientific-op" onclick="appendToDisplay('^')">xʸ</button>
-                <button class="btn clear" onclick="clearDisplay()">C</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('pi')">π</button>
+                <button class="btn scientific-op" onclick="appendToDisplay('e')">e</button>
 
                 <button class="btn" onclick="appendToDisplay('7')">7</button>
                 <button class="btn" onclick="appendToDisplay('8')">8</button>
                 <button class="btn" onclick="appendToDisplay('9')">9</button>
                 <button class="btn operator" onclick="appendToDisplay('/')">/</button>
-                <button class="btn scientific-op" onclick="appendToDisplay('pi')">π</button>
+                <button class="btn operator" onclick="appendToDisplay('*')">x</button>
 
                 <button class="btn" onclick="appendToDisplay('4')">4</button>
                 <button class="btn" onclick="appendToDisplay('5')">5</button>
                 <button class="btn" onclick="appendToDisplay('6')">6</button>
-                <button class="btn operator" onclick="appendToDisplay('*')">x</button>
-                <button class="btn scientific-op" onclick="appendToDisplay('e')">e</button>
+                <button class="btn operator" onclick="appendToDisplay('-')">-</button>
+                <button class="btn operator" onclick="appendToDisplay('+')">+</button>
 
                 <button class="btn" onclick="appendToDisplay('1')">1</button>
                 <button class="btn" onclick="appendToDisplay('2')">2</button>
                 <button class="btn" onclick="appendToDisplay('3')">3</button>
-                <button class="btn operator" onclick="appendToDisplay('-')">-</button>
-                <button class="btn operator" onclick="appendToDisplay('+')">+</button>
-
-                <button class="btn" onclick="appendToDisplay('0')">0</button>
-                <button class="btn scientific-op" onclick="appendToDisplay('(')">(</button>
-                <button class="btn scientific-op" onclick="appendToDisplay(')')">)</button>
                 <button class="btn operator" onclick="appendToDisplay('.')">.</button>
                 <button class="btn equals" onclick="calculateResult()">=</button>
             </div>
@@ -229,10 +228,15 @@
          * @param {string} value - The character or number to append.
          */
         function appendToDisplay(value) {
-            if (display.innerText === '0' || isResultDisplayed) {
-                display.innerText = value;
+            if (isResultDisplayed) {
+                // If a result is currently shown, start a new calculation
+                display.innerText = (value === '.') ? '0.' : value;
                 isResultDisplayed = false;
+            } else if (display.innerText === '0' && value !== '.') {
+                // If the display is '0' and the new value is not a decimal, replace it
+                display.innerText = value;
             } else {
+                // Otherwise, append the new value
                 display.innerText += value;
             }
         }
@@ -241,7 +245,7 @@
          * Toggles the sign of the current number on the display.
          */
         function toggleSign() {
-            if (display.innerText !== '0') {
+            if (display.innerText !== '0' && !isResultDisplayed) {
                 const currentText = display.innerText;
                 const lastOperatorIndex = Math.max(
                     currentText.lastIndexOf('+'),
@@ -274,6 +278,25 @@
             display.innerText = '0';
             isResultDisplayed = false;
         }
+        
+        /**
+         * Deletes the last character from the display.
+         * If the display is showing a result, it will be cleared to '0'.
+         */
+        function backspace() {
+            if (isResultDisplayed) {
+                display.innerText = '0';
+                isResultDisplayed = false;
+            } else {
+                let currentText = display.innerText;
+                if (currentText.length > 1) {
+                    display.innerText = currentText.slice(0, -1);
+                } else {
+                    display.innerText = '0';
+                }
+            }
+        }
+
 
         /**
          * Calculates the factorial of the current number on the display.
